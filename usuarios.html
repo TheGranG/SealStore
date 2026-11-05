@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestión de Personal - Estilo 7-Eleven</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --bg-main: #f4f6f8; 
+            --panel-bg: #ffffff; 
+            --7v-green: #007934; 
+            --7v-red: #E11B22; 
+            --7v-orange: #F37021; 
+            --text-main: #333333; 
+            --text-muted: #6b7280; 
+            --border: #e5e7eb; 
+            --input-bg: #f9fafb;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; display: flex; height: 100vh; 
+            background-color: var(--bg-main); color: var(--text-main); 
+            overflow: hidden; 
+        }
+
+        /* Navegación */
+        nav { 
+            width: 90px; background: var(--panel-bg); 
+            display: flex; flex-direction: column; align-items: center; 
+            padding-top: 15px; border-right: 1px solid var(--border); 
+            flex-shrink: 0; z-index: 100;
+        }
+        .nav-item { 
+            width: 100%; padding: 15px 0; display: flex; 
+            flex-direction: column; align-items: center; 
+            color: var(--text-muted); cursor: pointer; transition: 0.2s; 
+            border-left: 4px solid transparent; text-decoration: none; 
+        }
+        .nav-item:hover, .nav-item.active { 
+            color: var(--7v-green); background-color: #f0fdf4; 
+            border-left: 4px solid var(--7v-green); 
+        }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 5px; }
+        .nav-item span { font-size: 0.7rem; font-weight: 700; text-align: center; }
+
+        .main-content { flex-grow: 1; padding: 15px; display: flex; flex-direction: column; overflow-y: auto; position: relative;}
+        
+        /* Barra Superior */
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; background: var(--panel-bg); 
+            padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border);
+            border-top: 4px solid var(--7v-green);
+        }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+        
+        .btn-user {
+            background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main);
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+            font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;
+        }
+        .btn-user:hover { border-color: var(--7v-green); color: var(--7v-green); background: #f0fdf4; }
+
+        .btn-add { background: var(--7v-green); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: 0.2s; display: flex; align-items: center; gap: 8px;}
+        .btn-add:hover { background: #005c27; }
+
+        /* Tabla */
+        .table-container { background: var(--panel-bg); border-radius: 8px; margin-bottom: 30px; border: 1px solid var(--border); max-height: 75vh; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { position: sticky; top: 0; background: var(--input-bg); padding: 15px; text-align: left; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; z-index: 10; border-bottom: 2px solid var(--border);}
+        td { padding: 12px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.9rem; }
+        
+        .btn-action { background: var(--7v-red); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px;}
+        .btn-action:hover { background: #b9151c; }
+        
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; text-align: center; border: 1px solid transparent;}
+
+        /* Responsividad para móvil */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            nav { width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); order: 3; overflow-x: auto;}
+            .nav-item { padding: 10px 15px; border-left: none; border-bottom: 4px solid transparent; min-width: 60px;}
+            .nav-item.active { border-left: none; border-bottom: 4px solid var(--7v-green); background-color: transparent; }
+            .nav-item span { display: none; }
+            
+            .main-content { padding: 10px; padding-bottom: 0; }
+            .top-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+            .top-bar h2 { font-size: 1.2rem; margin-bottom: 10px; }
+            .top-bar-right { flex-direction: column; align-items: stretch; }
+            .btn-add, .btn-user { justify-content: center; }
+            
+            th:nth-child(4), td:nth-child(4) { display: none; } /* Ocultar contraseña en móvil */
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="venta.html" class="nav-item"><i class="fas fa-cash-register"></i><span>Venta</span></a>
+        <a href="inventario.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventario</span></a>
+        <a href="sucursales.html" class="nav-item"><i class="fas fa-store"></i><span>Sucursales</span></a>
+        <a href="pedidos.html" class="nav-item"><i class="fas fa-truck-loading"></i><span>Pedidos</span></a>
+        <a href="prestamos.html" class="nav-item"><i class="fas fa-handshake"></i><span>Prestamos</span></a>
+        <a href="reportes.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Registro</span></a>
+        <a href="usuarios.html" class="nav-item active"><i class="fas fa-users-cog"></i><span>Usuarios</span></a>
+    </nav>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2 style="margin:0;"><i class="fas fa-id-badge" style="color: var(--7v-green);"></i> Gestión de Personal</h2>
+            <div class="top-bar-right">
+                <button class="btn-add" onclick="modalCrearUsuario()"><i class="fas fa-user-plus"></i> Alta de Empleado</button>
+                <button class="btn-user" onclick="abrirLogin()">
+                    <i class="fas fa-user-circle" style="font-size: 1.2rem; color: var(--7v-green);"></i>
+                    <span id="usuario-nombre">Iniciar Sesión</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>ID Empleado</th><th>Usuario (Sistema)</th><th>Rol de Acceso</th><th>Contraseña</th><th>Acción</th></tr>
+                </thead>
+                <tbody id="tabla-usuarios">
+                    <tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Conectando con BD...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        function abrirLogin() {
+            Swal.fire({
+                title: 'Control de Acceso',
+                text: 'El modal de inicio de sesión se conectará aquí próximamente.',
+                icon: 'info',
+                background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'
+            });
+        }
+
+        async function cargarUsuarios() {
+            const tbody = document.getElementById('tabla-usuarios');
+            
+            try {
+                const res = await fetch('api_usuarios.php');
+                const data = await res.json();
+                
+                tbody.innerHTML = '';
+                
+                if(data.error) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--7v-red); font-weight:bold; padding: 20px;">${data.mensaje}</td></tr>`;
+                    return;
+                }
+
+                if(data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 20px;">No hay personal registrado en esta tienda.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(u => {
+                    const rolParseado = (u.rol === 'root' || u.rol === 'gerente') ? 'gerente' : 'cajero';
+                    
+                    let colorRol = '';
+                    if(rolParseado === 'gerente') {
+                        colorRol = 'background: #fff7ed; color: #c2410c; border-color: #fed7aa;'; // Tonos Naranja
+                    } else {
+                        colorRol = 'background: #f0fdf4; color: #166534; border-color: #bbf7d0;'; // Tonos Verde
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="color:var(--text-muted); font-family: monospace;">#${u.id}</td>
+                            <td style="font-weight:bold; color: var(--text-main);">${u.username}</td>
+                            <td><span class="status-pill" style="${colorRol}">${rolParseado.toUpperCase()}</span></td>
+                            <td style="color:var(--text-muted);">••••••••</td>
+                            <td><button class="btn-action" onclick="eliminarUsuario(${u.id}, '${u.username}')"><i class="fas fa-user-minus"></i> Baja</button></td>
+                        </tr>`;
+                });
+            } catch (e) {
+                // MODO SIMULACIÓN
+                tbody.innerHTML = `
+                    <tr>
+                        <td style="color:var(--text-muted); font-family: monospace;">#101</td>
+                        <td style="font-weight:bold; color: var(--text-main);">caja_matutino</td>
+                        <td><span class="status-pill" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">CAJERO</span></td>
+                        <td style="color:var(--text-muted);">••••••••</td>
+                        <td><button class="btn-action" onclick="eliminarUsuario(101, 'caja_matutino')"><i class="fas fa-user-minus"></i> Baja</button></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--text-muted); font-family: monospace;">#102</td>
+                        <td style="font-weight:bold; color: var(--text-main);">gerente_tienda</td>
+                        <td><span class="status-pill" style="background: #fff7ed; color: #c2410c; border-color: #fed7aa;">GERENTE</span></td>
+                        <td style="color:var(--text-muted);">••••••••</td>
+                        <td><button class="btn-action" onclick="eliminarUsuario(102, 'gerente_tienda')"><i class="fas fa-user-minus"></i> Baja</button></td>
+                    </tr>
+                    <tr><td colspan="5" style="text-align:center; color:var(--7v-orange); font-size:0.85rem; padding-top:20px;">Modo Simulación: Backend inactivo. Mostrando plantilla de prueba.</td></tr>
+                `;
+            }
+        }
+
+        async function pedirAutorizacionGerente() {
+            const { value: password } = await Swal.fire({
+                title: 'Autorización Gerencial',
+                text: 'Ingresa la clave de Gerente para confirmar esta acción en el sistema.',
+                input: 'password',
+                inputPlaceholder: 'Clave de Autorización',
+                showCancelButton: true,
+                background: '#ffffff', color: '#333333',
+                confirmButtonColor: '#F37021', // Naranja para advertencia de seguridad
+                cancelButtonText: 'Cancelar'
+            });
+            return password;
+        }
+
+        async function modalCrearUsuario() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Alta de Nuevo Empleado',
+                html: `
+                    <input id="swal-usr" class="swal2-input" placeholder="Nombre de Usuario (Login)">
+                    <input id="swal-pass" type="password" class="swal2-input" placeholder="Contraseña Temporal">
+                    <select id="swal-rol" class="swal2-input" style="width: 80%; max-width: 100%;">
+                        <option value="cajero">Cajero (Ventas y Traspasos)</option>
+                        <option value="gerente">Gerente (Acceso Total)</option>
+                    </select>
+                `,
+                focusConfirm: false, showCancelButton: true, background: '#ffffff', color: '#333333', confirmButtonColor: '#007934',
+                confirmButtonText: 'Registrar', cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    return [document.getElementById('swal-usr').value, document.getElementById('swal-pass').value, document.getElementById('swal-rol').value]
+                }
+            });
+
+            if (formValues && formValues[0] && formValues[1]) {
+                const rootPass = await pedirAutorizacionGerente();
+                if (!rootPass) return;
+
+                Swal.fire({title: 'Procesando alta...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading()});
+                try {
+                    const req = await fetch('api_usuarios.php', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            accion: 'CREAR',
+                            root_user: 'Gerente', // Estático en esta versión frontend
+                            root_pass: rootPass,
+                            nuevo_user: formValues[0], nuevo_pass: formValues[1], nuevo_rol: formValues[2]
+                        })
+                    });
+                    const res = await req.json();
+                    if(res.error) Swal.fire({icon: 'error', title: 'Acción Denegada', text: res.mensaje, background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021'});
+                    else { Swal.fire({icon: 'success', title: 'Empleado Registrado', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'}); cargarUsuarios(); }
+                } catch (e) {
+                    Swal.fire({icon: 'success', title: 'Simulación', text: 'El empleado fue dado de alta en la vista local.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'});
+                }
+            }
+        }
+
+        async function eliminarUsuario(id, nombre) {
+            const rootPass = await pedirAutorizacionGerente();
+            if (!rootPass) return;
+
+            Swal.fire({title: 'Procesando baja...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading()});
+            try {
+                const req = await fetch('api_usuarios.php', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        accion: 'ELIMINAR',
+                        root_user: 'Gerente',
+                        root_pass: rootPass,
+                        id_target: id
+                    })
+                });
+                const res = await req.json();
+                if(res.error) Swal.fire({icon: 'error', title: 'Error', text: res.mensaje, background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021'});
+                else { Swal.fire({icon: 'success', title: 'Baja Exitosa', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'}); cargarUsuarios(); }
+            } catch (e) {
+                Swal.fire({icon: 'success', title: 'Simulación', text: `El usuario ${nombre} fue dado de baja.`, background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'});
+            }
+        }
+
+        cargarUsuarios();
+    </script>
+</body>
+</html>

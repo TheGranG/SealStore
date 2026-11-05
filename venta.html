@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Punto de Venta - Estilo 7-Eleven</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --bg-main: #f4f6f8; 
+            --panel-bg: #ffffff; 
+            --7v-green: #007934; 
+            --7v-red: #E11B22; 
+            --7v-orange: #F37021; 
+            --text-main: #333333; 
+            --text-muted: #6b7280; 
+            --border: #e5e7eb; 
+            --input-bg: #f9fafb;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; display: flex; height: 100vh; 
+            background-color: var(--bg-main); color: var(--text-main); 
+            overflow: hidden; 
+        }
+
+        nav { 
+            width: 90px; background: var(--panel-bg); 
+            display: flex; flex-direction: column; align-items: center; 
+            padding-top: 15px; border-right: 1px solid var(--border); 
+            flex-shrink: 0; z-index: 100;
+        }
+        .nav-item { 
+            width: 100%; padding: 15px 0; display: flex; 
+            flex-direction: column; align-items: center; 
+            color: var(--text-muted); cursor: pointer; transition: 0.2s; 
+            border-left: 4px solid transparent; text-decoration: none; 
+        }
+        .nav-item:hover, .nav-item.active { 
+            color: var(--7v-green); background-color: #f0fdf4; 
+            border-left: 4px solid var(--7v-green); 
+        }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 5px; }
+        .nav-item span { font-size: 0.7rem; font-weight: 700; text-align: center; }
+
+        .main-content { flex-grow: 1; padding: 15px; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 15px; background: var(--panel-bg); 
+            padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border);
+            border-top: 4px solid var(--7v-orange);
+        }
+
+        .btn-user {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+        .btn-user:hover {
+            border-color: var(--7v-orange);
+            color: var(--7v-orange);
+            background: #fff7ed;
+        }
+
+        .layout-venta { display: flex; gap: 15px; height: 100%; overflow: hidden; }
+        .panel-izquierdo { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .panel-derecho { width: 340px; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; flex-shrink: 0; border-top: 4px solid var(--7v-red);}
+        
+        .search-container { position: relative; margin-bottom: 10px; }
+        .search-bar { width: 100%; padding: 12px 15px 12px 40px; background: var(--panel-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; outline: none; box-sizing: border-box; font-size: 1rem;}
+        .search-bar:focus { border-color: var(--7v-green); box-shadow: 0 0 0 3px rgba(0, 121, 52, 0.1); }
+        .search-icon { position: absolute; left: 15px; top: 14px; color: var(--text-muted); }
+
+        .table-container { background: var(--panel-bg); border-radius: 8px; flex-grow: 1; overflow-y: auto; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { position: sticky; top: 0; background: var(--input-bg); padding: 12px; text-align: left; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; z-index: 10; border-bottom: 2px solid var(--border);}
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        
+        .btn-add { background: var(--7v-green); border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold;}
+        .btn-add:hover { background: #005c27; }
+        .btn-loan { background: transparent; border: 1px solid var(--7v-orange); color: var(--7v-orange); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; margin-left: 5px; }
+        .btn-loan:hover { background: var(--7v-orange); color: white; }
+
+        .ticket-header { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; font-size: 1.1rem; color: var(--text-main);}
+        .ticket-body { flex: 1; overflow-y: auto; padding: 10px; background: var(--bg-main); }
+        .ticket-footer { padding: 15px; border-top: 1px solid var(--border); background: var(--panel-bg);}
+        
+        .ticket-item { background: var(--panel-bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);}
+        .qty-controls { display: flex; align-items: center; gap: 10px; background: var(--input-bg); border-radius: 6px; padding: 2px 6px; margin-top: 5px; width: fit-content; border: 1px solid var(--border);}
+        .qty-btn { background: transparent; border: none; color: var(--text-main); cursor: pointer; width: 24px; height: 24px; font-weight: bold; font-size: 1.1rem;}
+
+        .btn-pay { width: 100%; padding: 15px; border-radius: 6px; border: none; background: var(--7v-red); color: white; font-weight: bold; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+        .btn-pay:hover { background: #b9151c; }
+        .btn-cancel { width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold;}
+        .btn-cancel:hover { background: #fef2f2; color: var(--7v-red); border-color: var(--7v-red); }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            nav { width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); order: 3; }
+            .nav-item { padding: 10px 0; border-left: none; border-bottom: 4px solid transparent; }
+            .nav-item.active { border-left: none; border-bottom: 4px solid var(--7v-green); background-color: transparent; }
+            .nav-item span { display: none; }
+            
+            .main-content { padding: 10px; padding-bottom: 0; }
+            .layout-venta { flex-direction: column; overflow-y: auto; gap: 10px;}
+            .panel-izquierdo { flex: none; height: 50vh; }
+            .panel-derecho { width: 100%; height: auto; flex: none; margin-bottom: 10px;}
+            
+            .top-bar h2 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="venta.html" class="nav-item active"><i class="fas fa-cash-register"></i><span>Venta</span></a>
+        <a href="inventario.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventario</span></a>
+        <a href="sucursales.html" class="nav-item"><i class="fas fa-store"></i><span>Sucursales</span></a>
+        <a href="pedidos.html" class="nav-item"><i class="fas fa-truck-loading"></i><span>Pedidos</span></a>
+        <a href="prestamos.html" class="nav-item"><i class="fas fa-handshake"></i><span>Prestamos</span></a>
+        <a href="reportes.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Registro</span></a>
+        <a href="usuarios.html" class="nav-item"><i class="fas fa-users-cog"></i><span>Usuarios</span></a>
+    </nav>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2 style="margin:0;"><i class="fas fa-store" style="color: var(--7v-green);"></i>SealBox</h2>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="btn-user" onclick="abrirLogin()">
+                    <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i>
+                    <span id="cajero-nombre">Caja 1</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="layout-venta">
+            <div class="panel-izquierdo">
+                <div class="search-container">
+                    <i class="fas fa-barcode search-icon"></i>
+                    <input type="text" id="input-busqueda" class="search-bar" placeholder="Escanear código o buscar artículo...">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Código</th><th>Producto</th><th>Precio</th><th style="text-align:center;">Stock</th><th>Acción</th></tr></thead>
+                        <tbody id="tabla-productos"><tr><td colspan="5" style="text-align: center; padding: 50px; color: var(--text-muted);">Cargando inventario...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel-derecho">
+                <div class="ticket-header">Ticket de Compra</div>
+                <div class="ticket-body" id="contenedor-ticket"></div>
+                <div class="ticket-footer">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--text-main);">
+                        <span style="font-weight: bold;">TOTAL</span>
+                        <span id="total-txt" style="font-size: 1.5rem; font-weight: bold; color: var(--7v-red);">$0.00</span>
+                    </div>
+                    <button class="btn-pay" onclick="procesarVenta()"><i class="fas fa-cash-register"></i> Cobrar</button>
+                    <button class="btn-cancel" onclick="limpiarTicket()"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let ticket = [];
+        const SUCURSAL_LOCAL = 8;
+
+        function abrirLogin() {
+            Swal.fire({
+                title: 'Control de Acceso',
+                text: 'El modal de inicio de sesión se conectará aquí próximamente.',
+                icon: 'info',
+                background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'
+            });
+        }
+
+        async function cargarInventario() {
+            try {
+                const res = await fetch('api_inventario.php');
+                const datos = await res.json();
+                const tbody = document.getElementById('tabla-productos');
+                tbody.innerHTML = '';
+                if(datos.error) throw new Error(datos.mensaje);
+
+                datos.forEach(row => {
+                    const prod = row.productos || {};
+                    const stock = parseInt(row.cantidad_actual || 0);
+                    const colorStock = stock > 0 ? 'var(--7v-green)' : 'var(--7v-red)';
+                    const nombreMostrar = prod.nombre_producto || prod.nombre_pieza || 'N/A';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-family: monospace; color: var(--text-muted);">${row.sku_id}</td>
+                            <td><b>${nombreMostrar}</b></td>
+                            <td style="font-weight:bold; color: var(--7v-green);">$${parseFloat(prod.precio_lista_sugerido || 0).toFixed(2)}</td>
+                            <td style="color:${colorStock}; font-weight:bold; text-align:center;">${stock}</td>
+                            <td>
+                                <button class="btn-add" onclick="validarYAgregar(${row.id_producto},'${row.sku_id}', '${nombreMostrar.replace(/'/g, "\\'")}', ${prod.precio_lista_sugerido}, ${stock})" title="Agregar a Venta"><i class="fas fa-plus"></i></button>
+                                <button class="btn-loan" onclick="abrirModalPrestamoLibre('${row.sku_id}')" title="Solicitar Traspaso"><i class="fas fa-truck-loading"></i></button>
+                            </td>
+                        </tr>`;
+                });
+            } catch (e) {
+                document.getElementById('tabla-productos').innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 50px; color: var(--text-muted);">Error al cargar inventario local.</td></tr>';
+            }
+        }
+
+        // Agrega el parámetro id_producto al inicio
+function validarYAgregar(id_producto, sku, nombre, precio, stockMax) {
+    // Buscamos por id_producto en lugar de sku
+    const item = ticket.find(i => i.id_producto === id_producto); 
+    const cantidadActual = item ? item.cantidad : 0;
+    const nuevaCantidad = cantidadActual + 1;
+
+    if (nuevaCantidad > stockMax) {
+        const faltante = nuevaCantidad - stockMax;
+        Swal.fire({
+            title: 'Stock Insuficiente',
+            text: `Solo tienes ${stockMax} pz en piso. ¿Pedir faltante a otra tienda?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Buscar sucursal',
+            cancelButtonText: 'Solo vender lo que tengo',
+            background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021'
+        }).then(res => { if (res.isConfirmed) abrirModalPrestamo(id_producto, faltante); }); // Pasa el id_producto
+        return;
+    }
+    
+    if (item) {
+    item.cantidad++; 
+} else {
+    // Asegúrate de usar los nombres exactos: id_producto, sku, nombre, precio
+    ticket.push({ 
+        id_producto: id_producto, 
+        sku: sku, 
+        nombre: nombre, 
+        precio: precio, 
+        cantidad: 1, 
+        max: stockMax 
+    });
+}
+    renderizarTicket();
+}
+
+        function cambiarCant(index, delta) {
+            const item = ticket[index];
+            const nuevaCant = item.cantidad + delta;
+            if (nuevaCant > item.max) {
+                const faltante = nuevaCant - item.max;
+                Swal.fire({ 
+                    title: 'Límite alcanzado', 
+                    text: `¿Pedir faltante a otra tienda?`, 
+                    icon: 'info',
+                    showCancelButton: true, 
+                    background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021'
+                }).then(res => { if(res.isConfirmed) abrirModalPrestamo(item.sku, faltante); });
+                return;
+            }
+            item.cantidad += delta;
+            if (item.cantidad <= 0) ticket.splice(index, 1);
+            renderizarTicket();
+        }
+
+        // CONTROL DINÁMICO DE TECLADO
+        function escribirCantVenta(index, valor) {
+            const item = ticket[index];
+            let nuevaCant = parseInt(valor);
+
+            if (isNaN(nuevaCant) || nuevaCant < 0) nuevaCant = 0;
+
+            if (nuevaCant > item.max) {
+                item.cantidad = item.max;
+                renderizarTicket(); // Se fuerza el re-render solo cuando rompe el máximo
+                const faltante = nuevaCant - item.max;
+                Swal.fire({ 
+                    title: 'Stock Superado', 
+                    text: `Solo tienes ${item.max} piezas. ¿Pedir el resto a la red?`, 
+                    icon: 'info',
+                    showCancelButton: true, 
+                    background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021'
+                }).then(res => { if(res.isConfirmed) abrirModalPrestamo(item.sku, faltante); });
+            } else {
+                item.cantidad = nuevaCant;
+                if(nuevaCant > 0) {
+                    // Actualización sutil sin romper el foco del input
+                    document.getElementById(`subtotal-${index}`).innerText = `$${(item.precio * item.cantidad).toFixed(2)}`;
+                    actualizarTotalTicket();
+                }
+            }
+        }
+
+        function limpiarCeroBlur(index, valor) {
+            if (parseInt(valor) === 0 || valor === "") eliminarItem(index);
+        }
+
+        function actualizarTotalTicket() {
+            let total = 0;
+            ticket.forEach(i => total += (i.precio * i.cantidad));
+            document.getElementById('total-txt').innerText = `$${total.toFixed(2)}`;
+        }
+
+        function renderizarTicket() {
+            const cont = document.getElementById('contenedor-ticket');
+            if (ticket.length === 0) { cont.innerHTML = ''; document.getElementById('total-txt').innerText = '$0.00'; return; }
+            cont.innerHTML = ''; 
+            let total = 0;
+            
+            ticket.forEach((item, i) => {
+                const sub = item.precio * item.cantidad; 
+                total += sub;
+                cont.innerHTML += `
+                <div class="ticket-item">
+                    <div style="font-weight:bold; font-size:0.95rem;">${item.nombre}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${item.sku}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="cambiarCant(${i}, -1)">-</button>
+                            <input type="number" value="${item.cantidad}" 
+                                   oninput="escribirCantVenta(${i}, this.value)" 
+                                   onblur="limpiarCeroBlur(${i}, this.value)"
+                                   style="width: 40px; text-align: center; border: none; background: transparent; font-weight: bold; color: var(--text-main); font-size: 0.95rem; outline: none; padding: 0;">
+                            <button class="qty-btn" onclick="cambiarCant(${i}, 1)">+</button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap: 10px;">
+                            <div id="subtotal-${i}" style="color:var(--text-main); font-weight:bold;">$${sub.toFixed(2)}</div>
+                            <button onclick="eliminarItem(${i})" style="background:transparent; border:none; color:var(--7v-red); cursor:pointer; font-size:1.1rem;"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('total-txt').innerText = `$${total.toFixed(2)}`;
+        }
+
+        function eliminarItem(index) { ticket.splice(index, 1); renderizarTicket(); }
+        function limpiarTicket() { ticket = []; renderizarTicket(); }
+
+        async function abrirModalPrestamo(sku, cantSugerida) {
+            Swal.fire({title: 'Buscando en red...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading()});
+            try {
+                const res = await fetch(`api_stock_red.php?sku=${sku}`);
+                const sucursales = await res.json();
+                let validas = sucursales.filter(s => s.id_sucursal != SUCURSAL_LOCAL);
+                
+                if (validas.length === 0) return Swal.fire({icon: 'error', title: 'Agotado en la zona', background: '#ffffff', color: '#333333'});
+
+                let opts = `<select id="swal-suc" style="width:100%; padding:10px; background:#f9fafb; color:#333; border:1px solid #e5e7eb; border-radius:6px; outline:none;"><option value="">Selecciona Tienda...</option>`;
+                validas.forEach(s => opts += `<option value="${s.id_sucursal}">Tienda ${s.id_sucursal} (Disp: ${s.cantidad_actual})</option>`);
+                opts += `</select><br><input type="number" id="swal-cant" value="${cantSugerida}" min="1" style="width:100%; padding:10px; background:#f9fafb; color:#333; margin-top:10px; border:1px solid #e5e7eb; border-radius:6px; outline:none;">`;
+
+                Swal.fire({
+                    title: 'Solicitar Traspaso', html: opts, showCancelButton: true, background: '#ffffff', color: '#333333', confirmButtonColor: '#007934',
+                    preConfirm: () => {
+                        const suc = document.getElementById('swal-suc').value;
+                        const cant = parseInt(document.getElementById('swal-cant').value);
+                        if (!suc) { Swal.showValidationMessage('Elige una tienda'); return false; }
+                        return { suc, cant };
+                    }
+                }).then(result => { if (result.isConfirmed) enviarPeticionPrestamo(sku, result.value.suc, result.value.cant); });
+            } catch (e) { Swal.fire({icon: 'error', title: 'Error de Red', background: '#ffffff', color: '#333333'}); }
+        }
+
+        async function abrirModalPrestamoLibre(sku) {
+            Swal.fire({title: 'Rastreando producto...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading()});
+            try {
+                const res = await fetch(`api_stock_red.php?sku=${sku}`);
+                const sucursales = await res.json();
+                let validas = sucursales.filter(s => s.id_sucursal != SUCURSAL_LOCAL);
+                
+                if (validas.length === 0) {
+                    return Swal.fire({icon: 'info', title: 'Sin Stock', text: 'Ninguna otra tienda de la zona tiene este producto.', background: '#ffffff', color: '#333333'});
+                }
+
+                let opts = `<select id="swal-suc-libre" style="width:100%; padding:10px; background:#f9fafb; color:#333; border:1px solid #e5e7eb; border-radius:6px; outline:none;"><option value="">Selecciona a quién pedirle...</option>`;
+                validas.forEach(s => opts += `<option value="${s.id_sucursal}">Tienda ${s.id_sucursal} (Tiene ${s.cantidad_actual} pz)</option>`);
+                opts += `</select><br><input type="number" id="swal-cant-libre" placeholder="Cantidad a pedir" value="1" min="1" style="width:100%; padding:10px; background:#f9fafb; color:#333; margin-top:15px; border:1px solid #e5e7eb; border-radius:6px; outline:none;">`;
+
+                Swal.fire({
+                    title: 'Traspaso Libre',
+                    html: `<div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;">Estás solicitando <b>${sku}</b> a otra sucursal.</div>` + opts,
+                    showCancelButton: true, background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021', confirmButtonText: 'Enviar Petición',
+                    preConfirm: () => {
+                        const suc = document.getElementById('swal-suc-libre').value;
+                        const cant = parseInt(document.getElementById('swal-cant-libre').value);
+                        if (!suc) { Swal.showValidationMessage('Debes elegir una tienda'); return false; }
+                        if (cant < 1 || isNaN(cant)) { Swal.showValidationMessage('Ingresa una cantidad válida'); return false; }
+                        return { suc, cant };
+                    }
+                }).then(result => { 
+                    if (result.isConfirmed) enviarPeticionPrestamo(sku, result.value.suc, result.value.cant); 
+                });
+            } catch (e) { Swal.fire({icon: 'error', title: 'Error de Red', background: '#ffffff', color: '#333333'}); }
+        }
+
+        async function enviarPeticionPrestamo(sku, idDestino, cantidad) {
+            try {
+                const res = await fetch('api_solicitar_prestamo.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ sku: sku, cantidad: cantidad, suc_prestadora: idDestino }) });
+                const data = await res.json();
+                if(!data.error) Swal.fire({icon: 'success', title: 'Solicitud Enviada', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'});
+            } catch(e) {}
+        }
+
+        async function procesarVenta() {
+            if (ticket.length === 0) return;
+            Swal.fire({title: 'Procesando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading()});
+            try {
+                const res = await fetch('api_procesar_venta.php', { method: 'POST', body: JSON.stringify({ cajero: 'Caja 1', items: ticket }) });
+                const data = await res.json();
+                if(!data.error) { 
+                    Swal.fire({icon: 'success', title: 'Cobro Exitoso', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'}); 
+                    limpiarTicket(); cargarInventario(); 
+                } else {
+                    Swal.fire({icon: 'error', title: 'Error', text: data.mensaje, background: '#ffffff', color: '#333333'});
+                }
+            } catch (e) {
+                Swal.fire({icon: 'error', title: 'Error de conexión', background: '#ffffff', color: '#333333'});
+            }
+        }
+        
+        document.getElementById('input-busqueda').addEventListener('keyup', (e) => {
+            const val = e.target.value.toLowerCase();
+            document.querySelectorAll('#tabla-productos tr').forEach(f => f.style.display = f.innerText.toLowerCase().includes(val) ? '' : 'none');
+        });
+
+        cargarInventario();
+    </script>
+</body>
+</html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Traspasos - Estilo 7-Eleven</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --bg-main: #f4f6f8;
+            --panel-bg: #ffffff;
+            --7v-green: #007934;
+            --7v-red: #E11B22;
+            --7v-orange: #F37021;
+            --text-main: #333333;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --input-bg: #f9fafb;
+            --info-blue: #0284c7;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* Navegación */
+        nav {
+            width: 90px;
+            background: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 15px;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+            border-left: 4px solid transparent;
+            text-decoration: none;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--7v-green);
+            background-color: #f0fdf4;
+            border-left: 4px solid var(--7v-green);
+        }
+
+        .nav-item i {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-item span {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: var(--panel-bg);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--7v-green);
+            flex-shrink: 0;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-user {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .btn-user:hover {
+            border-color: var(--7v-green);
+            color: var(--7v-green);
+            background: #f0fdf4;
+        }
+
+        .kpi-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        .kpi-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .kpi-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .table-container {
+            background: var(--panel-bg);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            max-height: 40vh;
+            overflow-y: auto;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: var(--input-bg);
+            padding: 12px;
+            text-align: left;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            z-index: 10;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        .sku-tag {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-action {
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transition: 0.2s;
+            margin-right: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-success {
+            background: var(--7v-green);
+        }
+
+        .btn-success:hover {
+            background: #005c27;
+        }
+
+        .btn-danger {
+            background: var(--7v-red);
+        }
+
+        .btn-danger:hover {
+            background: #b9151c;
+        }
+
+        .btn-warning {
+            background: var(--7v-orange);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d05c18;
+        }
+
+        .btn-info {
+            background: var(--panel-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+
+        .btn-info:hover {
+            border-color: var(--7v-green);
+            color: var(--7v-green);
+            background: #f0fdf4;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            nav {
+                width: 100%;
+                height: 70px;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 0;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                order: 3;
+            }
+
+            .nav-item {
+                padding: 10px 0;
+                border-left: none;
+                border-bottom: 4px solid transparent;
+            }
+
+            .nav-item.active {
+                border-left: none;
+                border-bottom: 4px solid var(--7v-green);
+                background-color: transparent;
+            }
+
+            .nav-item span {
+                display: none;
+            }
+
+            .main-content {
+                padding: 10px;
+                padding-bottom: 0;
+            }
+
+            .kpi-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .top-bar h2 {
+                font-size: 1.2rem;
+            }
+
+            th:nth-child(2),
+            td:nth-child(2) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="venta.html" class="nav-item"><i class="fas fa-cash-register"></i><span>Venta</span></a>
+        <a href="inventario.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventario</span></a>
+        <a href="sucursales.html" class="nav-item"><i class="fas fa-store"></i><span>Sucursales</span></a>
+        <a href="pedidos.html" class="nav-item"><i class="fas fa-truck-loading"></i><span>Pedidos</span></a>
+        <a href="prestamos.html" class="nav-item active"><i class="fas fa-handshake"></i><span>Prestamos</span></a>
+        <a href="reportes.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Registro</span></a>
+        <a href="usuarios.html" class="nav-item"><i class="fas fa-users-cog"></i><span>Usuarios</span></a>
+    </nav>
+    <main class="main-content">
+        <div class="top-bar">
+            <h2 style="margin:0;"><i class="fas fa-handshake" style="color: var(--7v-green);"></i> Prestamos</h2>
+            <div class="top-bar-right">
+                <button onclick="cargarTablas()" class="btn-action btn-info" title="Actualizar Listado"><i class="fas fa-sync-alt"></i></button>
+                <button class="btn-user" onclick="abrirLogin()">
+                    <i class="fas fa-user-circle" style="font-size: 1.2rem; color: var(--7v-green);"></i>
+                    <span id="usuario-nombre">Iniciar Sesión</span>
+                </button>
+            </div>
+        </div>
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #fee2e2; color: var(--7v-red);"><i class="fas fa-arrow-down"></i></div>
+                <div>
+                    <h4 style="margin:0; font-size:0.75rem; color:var(--text-muted);">Mercancía a Reponer (Debemos)</h4>
+                    <p id="kpi-deudas" style="margin:2px 0 0 0; font-size:1.3rem; font-weight:bold; color:var(--text-main);">0 pz</p>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #dcfce7; color: var(--7v-green);"><i class="fas fa-arrow-up"></i></div>
+                <div>
+                    <h4 style="margin:0; font-size:0.75rem; color:var(--text-muted);">Mercancía Prestada (Nos Deben)</h4>
+                    <p id="kpi-prestado" style="margin:2px 0 0 0; font-size:1.3rem; font-weight:bold; color:var(--text-main);">0 pz</p>
+                </div>
+            </div>
+        </div>
+        <h3 style="font-size: 1.1rem; color: var(--7v-red); margin-top: 0; margin-bottom: 10px;"><i class="fas fa-history"></i> SOLICITUDES Y DEUDAS</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th>Código</th>
+                        <th>Producto</th>
+                        <th>Tienda Origen</th>
+                        <th style="text-align: center;">Cant.</th>
+                        <th style="text-align: center;">Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-deudas">
+                    <tr>
+                        <td colspan="7" style="text-align:center; color: var(--text-muted); padding: 20px;">Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h3 style="font-size: 1.1rem; color: var(--7v-green); margin-bottom: 10px;"><i class="fas fa-box-open"></i> PRESTAMOS A FAVOR</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th>Código</th>
+                        <th>Producto</th>
+                        <th>Tienda Destino</th>
+                        <th style="text-align: center;">Cant.</th>
+                        <th style="text-align: center;">Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-prestados">
+                    <tr>
+                        <td colspan="7" style="text-align:center; color: var(--text-muted); padding: 20px;">Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <script>
+        const API_KEY = 'sb_publishable_3mTZ7NYM3JLzM4VVVTnRAw_GbLrVIhb';
+
+        function abrirLogin() {
+            Swal.fire({
+                title: 'Control de Acceso',
+                text: 'El modal de inicio de sesión se conectará aquí próximamente.',
+                icon: 'info',
+                background: '#ffffff',
+                color: '#333333',
+                confirmButtonColor: '#007934'
+            });
+        }
+
+        async function cargarTablas() {
+            try {
+                const res = await fetch('api_prestamos_activos.php');
+                const data = await res.json();
+
+                if (data.error) throw new Error();
+
+                const t1 = document.getElementById('tabla-deudas');
+                const t2 = document.getElementById('tabla-prestados');
+                let c1 = 0,
+                c2 = 0;
+
+            // --- TABLA 1: YO PEDÍ (MIS DEUDAS) ---
+                t1.innerHTML = '';
+                if (data.mis_deudas.length === 0) t1.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 20px;">No hay traspasos activos.</td></tr>';
+
+                data.mis_deudas.sort((a, b) => new Date(b.fecha_solicitud) - new Date(a.fecha_solicitud)).forEach(item => {
+                    const st = item.estado.trim().toUpperCase();
+                    let btn = '';
+                    let colorStatus = '';
+                    const nombreMostrar = item.productos ? .nombre_producto || item.productos ? .nombre_pieza || 'N/A';
+
+                    if (st.includes('RECHAZADO') || st.includes('CANCELADO')) {
+                        colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
+                    } else if (st.includes('OFREZCO') || st.includes('OFERTA') || st.includes('CONTRAOFERTA')) {
+                        colorStatus = 'background: #fef9c3; color: #854d0e; border: 1px solid #fef08a;';
+                        const match = st.match(/\d+/);
+                        const cant = match ? match[0] : item.cantidad;
+                        btn = `<button class="btn-action btn-success" onclick="responderPrestamo(${item.id_prestamo}, 'ACEPTAR_OFERTA', ${cant})">Aceptar (${cant})</button>
+                        <button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'CANCELADO')">Cancelar</button>`;
+                    // Cambia esta línea:
+// } else if (st === 'PENDIENTE' || st.includes('SOLICITADO')) {
+
+// Por esta nueva línea que incluye ACTIVO:
+} else if (st === 'PENDIENTE' || st.includes('SOLICITADO') || st === 'ACTIVO') {
+    colorStatus = 'background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;';
+    btn = `<button class="btn-action btn-success" onclick="responderPrestamo(${item.id_prestamo}, 'ACEPTADO')">Autorizar</button>
+           <button class="btn-action btn-warning" onclick="ofertarMenos(${item.id_prestamo}, ${item.cantidad})">Ofrecer menos</button>
+           <button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'RECHAZADO')">Rechazar</button>`;
+} else if (st === 'ACEPTADO') {
+                        colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
+                        btn = `<button class="btn-action btn-success" onclick="recibirStock(${item.id_prestamo})"><i class="fas fa-download"></i> Recibir Mercancía</button>`;
+                    } else if (st === 'EN_DEUDA') {
+                        colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
+                        c1 += parseInt(item.cantidad);
+                        btn = `<button class="btn-action btn-warning" onclick="pagarDeudaManual(${item.id_prestamo})"><i class="fas fa-box-open"></i> Reponer c/Stock</button>`;
+                    } else if (st.includes('RECIBIDO') || st.includes('COMPLETADO')) {
+                        colorStatus = 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;';
+                    } else {
+                        colorStatus = 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;';
+                    }
+
+                    t1.innerHTML += `<tr>
+                        <td><span class="sku-tag">${item.folio}</span></td>
+                        <td style="font-weight: bold;">${item.sku_id}</td>
+                        <td>${nombreMostrar}</td>
+                        <td>Tienda ${item.sucursal_prestadora}</td>
+                        <td style="text-align:center; font-weight:bold;">${item.cantidad}</td>
+                        <td style="text-align:center;"><span class="status-pill" style="${colorStatus}">${st}</span></td>
+                        <td>${btn}</td>
+                </tr>`;
+            });
+
+            // --- TABLA 2: YO PRESTÉ (ME DEBEN) ---
+                t2.innerHTML = '';
+                if (data.me_deben.length === 0) t2.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 20px;">No hay traspasos pendientes.</td></tr>';
+
+                data.me_deben.sort((a, b) => new Date(b.fecha_solicitud) - new Date(a.fecha_solicitud)).forEach(item => {
+                    const st = item.estado.trim().toUpperCase();
+                    let colorStatus = '';
+                    let btn = '';
+                    const nombreMostrar = item.productos ? .nombre_producto || item.productos ? .nombre_pieza || 'N/A';
+
+                    if (st.includes('RECHAZADO') || st.includes('CANCELADO')) {
+                        colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
+                    } else if (st === 'PENDIENTE' || st.includes('SOLICITADO')) {
+                    colorStatus = 'background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;'; // O la variable de color que estés usando
+                    btn = `<button class="btn-action btn-success" onclick="responderPrestamo(${item.id_prestamo}, 'ACEPTADO')">Autorizar</button>
+           <button class="btn-action btn-warning" onclick="ofertarMenos(${item.id_prestamo}, ${item.cantidad})">Ofrecer menos</button>
+                    <button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'RECHAZADO')">Rechazar</button>`;
+                } else if (st.includes('OFREZCO') || st.includes('OFERTA') || st.includes('CONTRAOFERTA')) {
+                    colorStatus = 'background: #fef9c3; color: #854d0e; border: 1px solid #fef08a;';
+                } else if (st === 'ACEPTADO') {
+                    colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
+                } else if (st === 'EN_DEUDA') {
+                    colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
+                    c2 += parseInt(item.cantidad);
+                } else if (st.includes('RECIBIDO') || st.includes('COMPLETADO')) {
+                    colorStatus = 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;';
+                } else if (st.includes('TRANSITO') || st.includes('TRANCITO')) {
+                    colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
+                    btn = `<button class="btn-action" style="background:var(--info-blue); color:white;" onclick="recibirDevolucion(${item.id_prestamo})"><i class="fas fa-undo"></i> Recibir Reposición</button>`;
+                } else {
+                    colorStatus = 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;';
+                }
+
+                t2.innerHTML += `<tr>
+                        <td><span class="sku-tag">${item.folio}</span></td>
+                        <td style="font-weight: bold;">${item.sku_id}</td>
+                        <td>${nombreMostrar}</td>
+                        <td>Tienda ${item.sucursal_solicitante}</td>
+                        <td style="text-align:center; font-weight:bold;">${item.cantidad}</td>
+                        <td style="text-align:center;"><span class="status-pill" style="${colorStatus}">${st}</span></td>
+                        <td>${btn}</td>
+            </tr>`;
+        });
+
+                document.getElementById('kpi-deudas').innerText = c1 + ' pz';
+                document.getElementById('kpi-prestado').innerText = c2 + ' pz';
+            } catch (e) {
+                document.getElementById('tabla-deudas').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--7v-orange);">Modo Simulación: Esperando conexión con BD central.</td></tr>';
+                document.getElementById('tabla-prestados').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--7v-orange);">Modo Simulación: Esperando conexión con BD central.</td></tr>';
+            }
+        }
+
+        async function ofertarMenos(id, cantActual) {
+            const { value: cant } = await Swal.fire({
+                title: 'Ofrecer menos',
+                input: 'number',
+                inputLabel: `Solicitan ${cantActual} pz. ¿Cuántas puedes enviar?`,
+                inputValue: cantActual - 1,
+                showCancelButton: true,
+                background: '#ffffff',
+                color: '#333333',
+                confirmButtonColor: '#F37021',
+                inputValidator: (value) => { if (!value || value <= 0 || value >= cantActual) return 'Ingresa cantidad válida menor a la solicitada'; }
+            });
+            if (cant) responderPrestamo(id, 'OFERTA', cant);
+        }
+
+        async function responderPrestamo(id, accion, cantExtra = null) {
+            Swal.fire({ title: 'Procesando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
+            try {
+            // Aseguramos la ruta absoluta de Alwaysdata para el entorno móvil
+                const res = await fetch('https://gdb.alwaysdata.net/api_responder_prestamo.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_prestamo: id, accion: accion, cantidad: cantExtra })
+                });
+
+            // Doble lectura: atrapa texto HTML si PHP colapsa
+                const text = await res.text();
+                try {
+                    const data = JSON.parse(text);
+                    if (data.error) {
+                        Swal.fire({ icon: 'error', title: 'Aviso BD', text: data.mensaje });
+                    } else {
+                        Swal.fire({ icon: 'success', title: 'Actualizado', timer: 1500, showConfirmButton: false });
+                    cargarTablas(); // Cambiar a cargarPrestamos() si así llamas a tu función
+                }
+            } catch (parseError) {
+                Swal.fire({ icon: 'error', title: 'Fallo PHP', text: text.substring(0, 100) });
+            }
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'El servidor no responde o no hay internet.' });
+        }
+    }
+    async function recibirStock(id) {
+        Swal.fire({ title: 'Recibiendo...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
+        try {
+            const res = await fetch('api_confirmar_recepcion.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
+            const data = await res.json();
+            if (!data.error) {
+                Swal.fire({ icon: 'success', title: 'Mercancía en Piso', text: 'La mercancía se sumó al inventario local.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+                cargarTablas();
+            }
+        } catch (e) {
+            Swal.fire({ icon: 'success', title: 'Simulación', text: 'Mercancía recibida en piso.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+        }
+    }
+
+    async function recibirDevolucion(id) {
+        Swal.fire({ title: 'Recuperando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
+        try {
+            const res = await fetch('api_recibir_devolucion.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
+            const data = await res.json();
+            if (!data.error) {
+                Swal.fire({ icon: 'success', title: 'Reposición Exitosa', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+                cargarTablas();
+            }
+        } catch (e) {
+            Swal.fire({ icon: 'success', title: 'Simulación', text: 'Reposición aplicada.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+        }
+    }
+
+    async function pagarDeudaManual(id) {
+        const conf = await Swal.fire({
+            title: '¿Reponer con stock en piso?',
+            text: 'Se descontará de tu inventario actual para enviarlo a la tienda origen.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, enviar reposición',
+            background: '#ffffff',
+            color: '#333333',
+            confirmButtonColor: '#F37021'
+        });
+        if (conf.isConfirmed) {
+            Swal.fire({ title: 'Procesando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch('api_pagar_deuda_manual.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
+                const data = await res.json();
+                if (data.error) Swal.fire({ icon: 'error', title: 'Aviso', text: data.mensaje, background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021' });
+                else {
+                    Swal.fire({ icon: 'success', title: 'Repuesto', text: 'El stock fue descontado y enviado.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+                    cargarTablas();
+                }
+            } catch (e) {
+                Swal.fire({ icon: 'success', title: 'Simulación', text: 'Reposición enviada correctamente.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+            }
+        }
+    }
+
+    cargarTablas();
+    </script>
+</body>
+
+</html>

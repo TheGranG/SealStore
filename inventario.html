@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventario - SealBox</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --bg-main: #f4f6f8; 
+            --panel-bg: #ffffff; 
+            --7v-green: #007934; 
+            --7v-red: #E11B22; 
+            --7v-orange: #F37021; 
+            --text-main: #333333; 
+            --text-muted: #6b7280; 
+            --border: #e5e7eb; 
+            --input-bg: #f9fafb;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; display: flex; height: 100vh; 
+            background-color: var(--bg-main); color: var(--text-main); 
+            overflow: hidden; 
+        }
+
+        /* Navegación */
+        nav { 
+            width: 90px; background: var(--panel-bg); 
+            display: flex; flex-direction: column; align-items: center; 
+            padding-top: 15px; border-right: 1px solid var(--border); 
+            flex-shrink: 0; z-index: 100;
+        }
+        .nav-item { 
+            width: 100%; padding: 15px 0; display: flex; 
+            flex-direction: column; align-items: center; 
+            color: var(--text-muted); cursor: pointer; transition: 0.2s; 
+            border-left: 4px solid transparent; text-decoration: none; 
+        }
+        .nav-item:hover, .nav-item.active { 
+            color: var(--7v-green); background-color: #f0fdf4; 
+            border-left: 4px solid var(--7v-green); 
+        }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 5px; }
+        .nav-item span { font-size: 0.7rem; font-weight: 700; text-align: center; }
+
+        .main-content { flex-grow: 1; padding: 15px; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 15px; background: var(--panel-bg); 
+            padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border);
+            border-top: 4px solid var(--7v-green);
+        }
+
+        /* Botón de Usuario */
+        .btn-user {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+        .btn-user:hover {
+            border-color: var(--7v-green);
+            color: var(--7v-green);
+            background: #f0fdf4;
+        }
+
+        /* KPIs */
+        .kpi-row { display: flex; gap: 15px; margin-bottom: 15px; flex-shrink: 0;}
+        .kpi-card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; flex: 1; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);}
+        .kpi-icon { width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+        /* Buscador */
+        .search-container { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-shrink: 0;}
+        .search-wrapper { position: relative; flex: 1; }
+        .search-bar { width: 100%; padding: 10px 15px 10px 40px; background: var(--panel-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; outline: none; box-sizing: border-box; font-size: 1rem;}
+        .search-bar:focus { border-color: var(--7v-green); box-shadow: 0 0 0 3px rgba(0, 121, 52, 0.1); }
+        .search-icon { position: absolute; left: 15px; top: 12px; color: var(--text-muted); }
+        
+        .btn-sync { background: var(--panel-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 0.95rem;}
+        .btn-sync:hover { border-color: var(--7v-green); color: var(--7v-green); background: #f0fdf4;}
+
+        /* Tabla */
+        .table-container { background: var(--panel-bg); border-radius: 8px; flex-grow: 1; overflow-y: auto; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { position: sticky; top: 0; background: var(--input-bg); padding: 12px; text-align: left; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; z-index: 10; border-bottom: 2px solid var(--border);}
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle;}
+        
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; display: inline-block; text-align: center; min-width: 70px;}
+        .status-sano { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .status-critico { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+        .status-agotado { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* Responsividad para móvil */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            nav { width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); order: 3; }
+            .nav-item { padding: 10px 0; border-left: none; border-bottom: 4px solid transparent; }
+            .nav-item.active { border-left: none; border-bottom: 4px solid var(--7v-green); background-color: transparent; }
+            .nav-item span { display: none; }
+            
+            .main-content { padding: 10px; padding-bottom: 0; }
+            .kpi-row { flex-direction: column; gap: 10px; }
+            .search-container { flex-direction: column; }
+            .search-wrapper, .btn-sync { width: 100%; }
+            .top-bar h2 { font-size: 1.2rem; }
+            
+            /* Ocultar columnas menos críticas en móvil */
+            th:nth-child(3), td:nth-child(3),
+            th:nth-child(4), td:nth-child(4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="venta.html" class="nav-item"><i class="fas fa-cash-register"></i><span>Venta</span></a>
+        <a href="inventario.html" class="nav-item active"><i class="fas fa-boxes"></i><span>Inventario</span></a>
+        <a href="sucursales.html" class="nav-item"><i class="fas fa-store"></i><span>Sucursales</span></a>
+        <a href="pedidos.html" class="nav-item"><i class="fas fa-truck-loading"></i><span>Pedidos</span></a>
+        <a href="prestamos.html" class="nav-item"><i class="fas fa-handshake"></i><span>Prestamos</span></a>
+        <a href="reportes.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Registro</span></a>
+        <a href="usuarios.html" class="nav-item"><i class="fas fa-users-cog"></i><span>Usuarios</span></a>
+    </nav>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2 style="margin:0;"><i class="fas fa-boxes" style="color: var(--7v-green);"></i> Inventario</h2>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="btn-user" onclick="abrirLogin()">
+                    <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i>
+                    <span id="cajero-nombre">Iniciar Sesión</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fas fa-box-open"></i></div>
+                <div><h4 style="margin:0; font-size:0.75rem; color:var(--text-muted);">Artículos en Piso</h4><p id="kpi-volumen" style="margin:2px 0 0 0; font-size:1.3rem; font-weight:bold; color:var(--text-main);">0</p></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #dcfce7; color: var(--7v-green);"><i class="fas fa-dollar-sign"></i></div>
+                <div><h4 style="margin:0; font-size:0.75rem; color:var(--text-muted);">Valor de Inventario</h4><p id="kpi-valor" style="margin:2px 0 0 0; font-size:1.3rem; font-weight:bold; color:var(--text-main);">$0.00</p></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #fee2e2; color: var(--7v-red);"><i class="fas fa-exclamation-triangle"></i></div>
+                <div><h4 style="margin:0; font-size:0.75rem; color:var(--text-muted);">Alertas de Stock</h4><p id="kpi-alertas" style="margin:2px 0 0 0; font-size:1.3rem; font-weight:bold; color:var(--7v-red);">0</p></div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="input-busqueda" class="search-bar" placeholder="Buscar por código de barras, producto o marca...">
+            </div>
+            <button class="btn-sync" onclick="cargarInventario()"><i class="fas fa-sync-alt"></i> Actualizar Piso</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Producto / Categoría</th>
+                        <th>Precio Venta</th>
+                        <th style="text-align: center;">Mínimo Ideal</th>
+                        <th style="text-align: center;">Stock en Piso</th>
+                        <th style="text-align: center;">Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-inventario">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Cargando catálogo de tienda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        function abrirLogin() {
+            Swal.fire({
+                title: 'Control de Acceso',
+                text: 'El modal de inicio de sesión se conectará aquí próximamente.',
+                icon: 'info',
+                background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'
+            });
+        }
+
+        async function cargarInventario() {
+            const tbody = document.getElementById('tabla-inventario');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Sincronizando inventario de tienda...</td></tr>';
+            
+            try {
+                const res = await fetch('api_inventario.php');
+                const data = await res.json();
+                
+                tbody.innerHTML = '';
+                
+                let totalVolumen = 0;
+                let totalValor = 0;
+                let totalAlertas = 0;
+
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">No hay productos registrados en el inventario.</td></tr>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const prod = item.productos || {};
+                    const stock = parseInt(item.cantidad_actual || 0);
+                    const min = parseInt(prod.stock_minimo_alerta || 0);
+                    const precio = parseFloat(prod.precio_lista_sugerido || 0);
+                    const nombreMostrar = prod.nombre_producto || prod.nombre_pieza || 'N/A';
+                    
+                    totalVolumen += stock;
+                    totalValor += (stock * precio);
+
+                    let estado = '<span class="status-pill status-sano">SANO</span>';
+                    let colorStock = 'var(--7v-green)';
+
+                    if (stock === 0) {
+                        estado = '<span class="status-pill status-agotado">AGOTADO</span>';
+                        colorStock = 'var(--7v-red)';
+                        totalAlertas++;
+                    } else if (stock <= min) {
+                        estado = '<span class="status-pill status-critico">REORDEN</span>';
+                        colorStock = 'var(--7v-orange)';
+                        totalAlertas++;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-family: monospace; color: var(--text-muted);">${item.sku_id}</td>
+                            <td>
+                                <div style="font-weight: bold; color: var(--text-main);">${nombreMostrar}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">${prod.marca || 'Abarrotes / Genérico'}</div>
+                            </td>
+                            <td style="font-weight:bold; color: var(--text-main);">$${precio.toFixed(2)}</td>
+                            <td style="text-align:center; color:var(--text-muted);">${min}</td>
+                            <td style="text-align:center; font-weight:bold; font-size:1.1rem; color:${colorStock};">${stock}</td>
+                            <td style="text-align:center;">${estado}</td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('kpi-volumen').innerText = totalVolumen.toLocaleString('en-US');
+                document.getElementById('kpi-valor').innerText = '$' + totalValor.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('kpi-alertas').innerText = totalAlertas;
+
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--7v-orange); padding:30px;">Modo Simulación: Esperando conexión con la base de datos local.</td></tr>';
+                document.getElementById('kpi-volumen').innerText = '0';
+                document.getElementById('kpi-valor').innerText = '$0.00';
+                document.getElementById('kpi-alertas').innerText = '0';
+            }
+        }
+
+        document.getElementById('input-busqueda').addEventListener('keyup', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filas = document.querySelectorAll('#tabla-inventario tr');
+            filas.forEach(f => f.style.display = f.innerText.toLowerCase().includes(val) ? '' : 'none');
+        });
+
+        cargarInventario();
+    </script>
+</body>
+</html>

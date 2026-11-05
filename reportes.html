@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cortes y Auditoría - Estilo 7-Eleven</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --bg-main: #f4f6f8; 
+            --panel-bg: #ffffff; 
+            --7v-green: #007934; 
+            --7v-red: #E11B22; 
+            --7v-orange: #F37021; 
+            --text-main: #333333; 
+            --text-muted: #6b7280; 
+            --border: #e5e7eb; 
+            --input-bg: #f9fafb;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; display: flex; height: 100vh; 
+            background-color: var(--bg-main); color: var(--text-main); 
+            overflow: hidden; 
+        }
+
+        /* Navegación */
+        nav { 
+            width: 90px; background: var(--panel-bg); 
+            display: flex; flex-direction: column; align-items: center; 
+            padding-top: 15px; border-right: 1px solid var(--border); 
+            flex-shrink: 0; z-index: 100;
+        }
+        .nav-item { 
+            width: 100%; padding: 15px 0; display: flex; 
+            flex-direction: column; align-items: center; 
+            color: var(--text-muted); cursor: pointer; transition: 0.2s; 
+            border-left: 4px solid transparent; text-decoration: none; 
+        }
+        .nav-item:hover, .nav-item.active { 
+            color: var(--7v-green); background-color: #f0fdf4; 
+            border-left: 4px solid var(--7v-green); 
+        }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 5px; }
+        .nav-item span { font-size: 0.7rem; font-weight: 700; text-align: center; }
+
+        .main-content { flex-grow: 1; padding: 15px; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Barra Superior */
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 15px; background: var(--panel-bg); 
+            padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border);
+            border-top: 4px solid var(--7v-green); flex-shrink: 0;
+        }
+        
+        .btn-user {
+            background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main);
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+            font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;
+        }
+        .btn-user:hover { border-color: var(--7v-green); color: var(--7v-green); background: #f0fdf4; }
+
+        /* Buscador y Filtros */
+        .search-container { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-shrink: 0; }
+        
+        .select-period { 
+            width: auto; padding: 10px 15px; background: var(--panel-bg); 
+            border: 1px solid var(--border); color: var(--text-main); 
+            border-radius: 8px; outline: none; cursor: pointer; font-weight: bold; font-size: 0.95rem;
+        }
+        .select-period:focus { border-color: var(--7v-green); box-shadow: 0 0 0 3px rgba(0, 121, 52, 0.1); }
+
+        .search-wrapper { position: relative; flex: 1; }
+        .search-bar { width: 100%; padding: 10px 15px 10px 40px; background: var(--panel-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; outline: none; box-sizing: border-box; font-size: 1rem;}
+        .search-bar:focus { border-color: var(--7v-green); box-shadow: 0 0 0 3px rgba(0, 121, 52, 0.1); }
+        .search-icon { position: absolute; left: 15px; top: 12px; color: var(--text-muted); }
+        
+        .btn-sync { background: var(--panel-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 0.95rem;}
+        .btn-sync:hover { border-color: var(--7v-green); color: var(--7v-green); background: #f0fdf4;}
+
+        /* Tabla */
+        .table-container { background: var(--panel-bg); border-radius: 8px; flex-grow: 1; overflow-y: auto; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { position: sticky; top: 0; background: var(--input-bg); padding: 12px; text-align: left; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; z-index: 10; border-bottom: 2px solid var(--border);}
+        td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.9rem; }
+        
+        .sku-tag { font-family: monospace; font-size: 0.85rem; color: var(--text-muted); background: var(--input-bg); padding: 3px 6px; border-radius: 4px; border: 1px solid var(--border);}
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; min-width: 80px; justify-content: center;}
+
+        /* Responsividad para móvil */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            nav { width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); order: 3; }
+            .nav-item { padding: 10px 0; border-left: none; border-bottom: 4px solid transparent; }
+            .nav-item.active { border-left: none; border-bottom: 4px solid var(--7v-green); background-color: transparent; }
+            .nav-item span { display: none; }
+            
+            .main-content { padding: 10px; padding-bottom: 0; }
+            .top-bar h2 { font-size: 1.2rem; }
+            .search-container { flex-direction: column; align-items: stretch; }
+            .select-period, .search-wrapper, .btn-sync { width: 100%; }
+            th:nth-child(6), td:nth-child(6) { display: none; } 
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="venta.html" class="nav-item"><i class="fas fa-cash-register"></i><span>Venta</span></a>
+        <a href="inventario.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventario</span></a>
+        <a href="sucursales.html" class="nav-item"><i class="fas fa-store"></i><span>Sucursales</span></a>
+        <a href="pedidos.html" class="nav-item"><i class="fas fa-truck-loading"></i><span>Pedidos</span></a>
+        <a href="prestamos.html" class="nav-item"><i class="fas fa-handshake"></i><span>Prestamos</span></a>
+        <a href="reportes.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>Registro</span></a>
+        <a href="usuarios.html" class="nav-item"><i class="fas fa-users-cog"></i><span>Usuarios</span></a>
+    </nav>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2 style="margin:0;"><i class="fas fa-file-invoice" style="color: var(--7v-green);"></i> Cortes y Movimientos</h2>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="btn-user" onclick="abrirLogin()">
+                    <i class="fas fa-user-circle" style="font-size: 1.2rem; color: var(--7v-green);"></i>
+                    <span id="cajero-nombre">Iniciar Sesión</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <select id="filtro-periodo" class="select-period" onchange="aplicarFiltros()">
+                <option value="hoy">Hoy (Corte Diario)</option>
+                <option value="semana">Esta Semana</option>
+                <option value="mes" selected>Este Mes</option>
+                <option value="todos">Historial Completo</option>
+            </select>
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="input-busqueda" class="search-bar" placeholder="Buscar por Folio, Código, Operación o Descripción..." onkeyup="aplicarFiltros()">
+            </div>
+            <button class="btn-sync" onclick="cargarReportes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha / Hora</th>
+                        <th>Operación</th>
+                        <th>Folio Ref.</th>
+                        <th>Código</th>
+                        <th style="text-align:center;">Cant.</th>
+                        <th>Descripción (Detalle)</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-reportes">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Cargando registros de movimientos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+    let reportesMaster = [];
+
+    function abrirLogin() {
+        Swal.fire({
+            title: 'Control de Acceso',
+            text: 'El modal de inicio de sesión se conectará aquí próximamente.',
+            icon: 'info',
+            background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'
+        });
+    }
+
+    async function cargarReportes() {
+        const tbody = document.getElementById('tabla-reportes');
+        if(tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;"><i class="fas fa-spinner fa-spin"></i> Consultando registros en Kardex, Matriz y Préstamos...</td></tr>';
+        
+        try {
+            const res = await fetch('api_reportes.php');
+            const data = await res.json();
+            
+            if (!Array.isArray(data)) throw new Error();
+            
+            reportesMaster = data;
+            aplicarFiltros(); 
+        } catch (e) {
+            if(tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--7v-orange); padding: 30px;">Error: No se pudo contactar con Supabase o el archivo PHP falló.</td></tr>';
+        }
+    }
+
+    function aplicarFiltros() {
+        const tbody = document.getElementById('tabla-reportes');
+        if(!tbody) return;
+        
+        const buscadorElement = document.getElementById('input-busqueda') || document.getElementById('buscador');
+        const textoBuscado = buscadorElement ? buscadorElement.value.toLowerCase().trim() : '';
+        const periodoSeleccionado = document.getElementById('filtro-periodo') ? document.getElementById('filtro-periodo').value : 'todos';
+        const ahora = new Date();
+
+        tbody.innerHTML = '';
+        let contador = 0;
+        let totalVentasMonto = 0;
+        let totalPiezasEntrantes = 0;
+
+        reportesMaster.forEach(m => {
+            const fechaMov = new Date(m.fecha);
+            let cumpleFecha = true;
+
+            if (periodoSeleccionado === 'hoy') {
+                cumpleFecha = fechaMov.toDateString() === ahora.toDateString();
+            } else if (periodoSeleccionado === 'semana') {
+                const hace7Dias = new Date();
+                hace7Dias.setDate(ahora.getDate() - 7);
+                cumpleFecha = fechaMov >= hace7Dias;
+            } else if (periodoSeleccionado === 'mes') {
+                cumpleFecha = fechaMov.getMonth() === ahora.getMonth() && fechaMov.getFullYear() === ahora.getFullYear();
+            }
+
+            const folioStr = (m.folio || '').toLowerCase();
+            const productoStr = (m.producto_nombre || '').toLowerCase();
+            const origenStr = (m.origen_destino || '').toLowerCase();
+            const tipoStr = (m.tipo || '').toLowerCase();
+            
+            const cumpleTexto = textoBuscado === '' || 
+                                folioStr.includes(textoBuscado) || 
+                                productoStr.includes(textoBuscado) || 
+                                origenStr.includes(textoBuscado) || 
+                                tipoStr.includes(textoBuscado);
+
+            if (cumpleFecha && cumpleTexto) {
+                contador++;
+                const fechaStr = fechaMov.toLocaleString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+                const tipoReal = (m.tipo || 'GENERAL').toUpperCase();
+                
+                let iconHtml = '';
+                
+                // Mapeo estricto a las 3 operaciones requeridas
+                if (tipoReal === 'VENTA') {
+                    iconHtml = `<span class="status-pill" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca;"><i class="fas fa-arrow-up"></i> ${tipoReal}</span>`;
+                    totalVentasMonto += parseFloat(m.monto_total || 0);
+                } 
+                else if (tipoReal === 'ENTRADA MATRIZ' || tipoReal === 'REPOSICION PRESTAMO') {
+                    iconHtml = `<span class="status-pill" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;"><i class="fas fa-arrow-down"></i> ${tipoReal}</span>`;
+                    totalPiezasEntrantes += parseInt(m.cantidad || 0);
+                } 
+                else {
+                    iconHtml = `<span class="status-pill" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0;"><i class="fas fa-circle"></i> ${tipoReal}</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="color:var(--text-muted); font-size:0.85rem;">${fechaStr}</td>
+                        <td>${iconHtml}</td>
+                        <td><span class="sku-tag">${m.folio}</span></td>
+                        <td style="font-weight:bold; color:var(--text-main);">${m.producto_nombre}</td>
+                        <td style="text-align:center; font-weight:bold; font-size: 1.05rem;">${m.cantidad}</td>
+                        <td style="color:var(--text-muted);">${m.origen_destino} <br> <small style="color:var(--7v-green); font-weight:bold;">${m.monto_total > 0 ? '$'+m.monto_total.toFixed(2) : ''}</small></td>
+                    </tr>
+                `;
+            }
+        });
+
+        if (contador === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">No hay registro en supabase para este filtro.</td></tr>';
+        }
+        
+        const kpiVentas = document.getElementById('kpi-ventas');
+        const kpiEntradas = document.getElementById('kpi-entradas');
+        const kpiMovimientos = document.getElementById('kpi-movimientos');
+        
+        if(kpiVentas) kpiVentas.innerText = '$' + totalVentasMonto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if(kpiEntradas) kpiEntradas.innerText = totalPiezasEntrantes.toLocaleString('en-US') + ' pz / op';
+        if(kpiMovimientos) kpiMovimientos.innerText = contador;
+    }
+
+    const buscadorElement = document.getElementById('input-busqueda') || document.getElementById('buscador');
+    if(buscadorElement) buscadorElement.addEventListener('keyup', aplicarFiltros);
+    
+    const periodoElement = document.getElementById('filtro-periodo');
+    if(periodoElement) periodoElement.addEventListener('change', aplicarFiltros);
+    
+    cargarReportes();
+</script>
+</body>
+</html>
