@@ -1,0 +1,2 @@
+# SealStore
+Proyecto GPSF
