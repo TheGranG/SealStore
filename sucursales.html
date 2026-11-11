@@ -68,28 +68,32 @@
         }
         .btn-user:hover { border-color: var(--7v-green); color: var(--7v-green); background: #f0fdf4; }
 
-        /* 2. BARRA DE BÚSQUEDA (Debajo de la barra superior) */
-        .search-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; flex-shrink: 0; width: 100%; }
+        /* 2. BARRA DE BÚSQUEDA */
+        .search-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; flex-shrink: 0; width: 100%; position: relative; z-index: 50; }
         .search-wrapper { position: relative; width: 100%; }
         .search-bar { width: 100%; padding: 12px 15px 12px 40px; background: var(--panel-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; outline: none; box-sizing: border-box; font-size: 1rem; transition: 0.2s;}
         .search-bar:focus { border-color: var(--7v-green); box-shadow: 0 0 0 3px rgba(0, 121, 52, 0.1); }
         .search-icon { position: absolute; left: 15px; top: 14px; color: var(--text-muted); }
 
-        /* RESULTADOS DE BÚSQUEDA */
+        /* RESULTADOS DE BÚSQUEDA FLOTANTES */
         #resultados-busqueda { 
             display: none; 
+            position: absolute;
+            top: 100%;
+            left: 0;
             background: var(--panel-bg); 
             border: 1px solid var(--border); 
             border-radius: 8px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
             overflow: hidden; 
-            flex-shrink: 0;
             width: 100%;
+            margin-top: 5px;
         }
 
         /* Directorio de Nodos */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; flex-shrink: 0;}
-        .sucursal-card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
+        .sucursal-card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); cursor: pointer;}
+        .sucursal-card:hover { border-color: var(--7v-green); box-shadow: 0 4px 8px rgba(0,121,52,0.1); }
         .badge-online { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: bold; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 5px; width: fit-content;}
 
         /* Cotizador Layout */
@@ -115,7 +119,14 @@
 
         .table-scroll-container { overflow-y: auto; max-height: 40vh; }
 
-        /* Responsividad para móvil: Bloque restaurado */
+        /* MODAL INVENTARIO SUCURSAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--panel-bg); width: 90%; max-width: 600px; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; max-height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-header { padding: 15px 20px; background: var(--7v-green); color: white; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .modal-body { padding: 0; overflow-y: auto; }
+        .btn-close { background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; }
+
+        /* Responsividad para móvil */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             nav { width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); order: 3; }
@@ -126,7 +137,6 @@
             .main-content { padding: 10px; padding-bottom: 0; }
             .top-bar h2 { font-size: 1.2rem; }
             
-            /* Ajustes para elementos específicos de Sucursales */
             .top-bar { padding: 10px 15px; }
             .btn-user { padding: 6px 10px; font-size: 0.85rem; }
             .cotizador-layout { flex-direction: column; }
@@ -148,7 +158,7 @@
     </nav>
 
     <main class="main-content">
-        <!-- 1. BLOQUE SUPERIOR: Título + Login -->
+        <!-- 1. BLOQUE SUPERIOR -->
         <div class="top-bar">
             <h2 style="margin:0;"><i class="fas fa-store" style="color: var(--7v-orange);"></i> Sucursales</h2>
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -160,11 +170,11 @@
             </div>
         </div>
 
-        <!-- 2. BLOQUE DE BÚSQUEDA: Debajo del Top Bar -->
+        <!-- 2. BLOQUE DE BÚSQUEDA -->
         <div class="search-container">
             <div class="search-wrapper">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="buscador-global" class="search-bar" placeholder="Buscar producto en la red de tiendas..." onkeyup="buscarProducto()">
+                <input type="text" id="buscador-global" class="search-bar" placeholder="Buscar producto en la red de tiendas por nombre o código..." onkeyup="buscarProducto()">
             </div>
             
             <div id="resultados-busqueda">
@@ -216,308 +226,396 @@
             </div>
         </div>
 
+        <!-- MODAL CATÁLOGO DE TIENDA -->
+        <div class="modal-overlay" id="modal-catalogo">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span id="modal-titulo-tienda"><i class="fas fa-store"></i> Inventario de Sucursal</span>
+                    <button class="btn-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body table-scroll-container" style="max-height: 60vh;">
+                    <table>
+                        <thead>
+                            <tr><th>Código SKU</th><th>Producto</th><th style="text-align:center;">En BD</th></tr>
+                        </thead>
+                        <tbody id="tabla-modal-inventario">
+                            <!-- Inyectado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script>
-        const API_KEY = 'sb_publishable_3mTZ7NYM3JLzM4VVVTnRAw_GbLrVIhb';
-        const SUCURSAL_LOCAL = 6;
-        let inventarioMatematico = {}; 
-        let listaCotizacion = []; 
-        let sucursalesRed = []; 
+    // CREDENCIALES ACTUALIZADAS
+    const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0dXR1dHRlbWRmanFlaGhsam93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzQ4MTAsImV4cCI6MjEwMzgxMDgxMH0.BPbpH8IMe_BP5XVwfmHipLmfbNC7LBh66B4PJQJ2b_g';
+    const SUPABASE_URL = 'https://ytututtemdfjqehhljow.supabase.co/rest/v1';
+    
+    // El ID 2 corresponde al equipo 8 en este entorno
+    const SUCURSAL_LOCAL = 2; 
 
-        const nombresSucursales = {
-            1: 'Tienda Centro', 2: 'Tienda Norte', 3: 'Tienda Sur', 
-            4: 'Tienda Oriente', 5: 'Tienda Poniente', 6: 'Mi Tienda (Local)', 
-            999: 'CEDIS Principal'
-        };
+    // Backup dictionary just in case sucursales table is empty
+    const nombresSucursales = {
+        1: 'Matriz Centro Distribución',
+        2: 'Mi Tienda (Sucursal Local)',
+        3: 'Sucursal 03',
+        4: 'Sucursal 04',
+        5: 'Sucursal 05',
+        13: 'Sucursal 13 Oxxo Tamatan'
+    };
 
-        function abrirLogin() {
-            Swal.fire({
-                title: 'Control de Acceso',
-                text: 'El modal de inicio de sesión se conectará aquí próximamente.',
-                icon: 'info',
-                background: '#ffffff', color: '#333333', confirmButtonColor: '#007934'
-            });
-        }
+    let inventarioMatematico = {};   
+    let listaCotizacion = [];
+    let sucursalesRed = [];
 
-        async function preCargarRed() {
-            document.getElementById('txt-cargando').style.display = 'inline-block';
+    const HEADERS_BASE = {
+        'apikey': API_KEY,
+        'Authorization': 'Bearer ' + API_KEY
+    };
 
-            try {
-                const [resInv, resProd] = await Promise.all([
-                    fetch(`https://exifxvgbwuqdlnjtmixd.supabase.co/rest/v1/inventario_nodos?select=*`, { headers: { 'apikey': API_KEY, 'Authorization': 'Bearer ' + API_KEY } }),
-                    fetch(`https://exifxvgbwuqdlnjtmixd.supabase.co/rest/v1/productos?select=sku_id,nombre_producto,nombre_pieza`, { headers: { 'apikey': API_KEY, 'Authorization': 'Bearer ' + API_KEY } })
-                ]);
+    async function fetchAllPaginado(url) {
+        const pageSize = 1000;
+        let all = [];
+        let from = 0;
 
-                if (!resInv.ok) throw new Error("API error");
-
-                const datosInv = await resInv.json();
-                const datosProd = await resProd.json();
-
-                const dictProd = {};
-                if (Array.isArray(datosProd)) datosProd.forEach(p => dictProd[p.sku_id] = p.nombre_producto || p.nombre_pieza || 'Abarrote General');
-
-                inventarioMatematico = {};
-                const sucursalesDetectadas = new Set();
-
-                datosInv.forEach(registro => {
-                    const sku = registro.sku_id;
-                    const idSuc = parseInt(registro.id_sucursal);
-                    
-                    sucursalesDetectadas.add(idSuc);
-
-                    if (!inventarioMatematico[sku]) {
-                        inventarioMatematico[sku] = {
-                            nombre: dictProd[sku] || 'Producto Desconocido',
-                            stockPorSucursal: {}
-                        };
-                    }
-                    inventarioMatematico[sku].stockPorSucursal[idSuc] = parseInt(registro.cantidad_actual || 0);
-                });
-
-                sucursalesRed = Array.from(sucursalesDetectadas).map(id => ({
-                    id: id,
-                    nombre: nombresSucursales[id] || `Tienda ${id}`
-                })).sort((a,b) => a.id - b.id);
-
-            } catch (e) {
-                document.getElementById('txt-cargando').innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--7v-orange);"></i> Simulación';
-                
-                sucursalesRed = [
-                    {id: 1, nombre: 'Tienda Centro'},
-                    {id: 4, nombre: 'Tienda Oriente'},
-                    {id: 6, nombre: 'Mi Tienda (Local)'},
-                    {id: 999, nombre: 'CEDIS Principal'}
-                ];
-                
-                inventarioMatematico = {
-                    '75010111': { nombre: 'Coca Cola Regular 600ml', stockPorSucursal: {1: 24, 4: 0, 6: 12, 999: 500} },
-                    '75010222': { nombre: 'Gansito Marinela 50g', stockPorSucursal: {1: 5, 4: 15, 6: 2, 999: 300} },
-                    '75010333': { nombre: 'Bolsa de Hielo 5kg', stockPorSucursal: {1: 0, 4: 10, 6: 0, 999: 100} },
-                    '75010444': { nombre: 'Café Andatti Clásico', stockPorSucursal: {1: 30, 4: 20, 6: 15, 999: 1000} }
-                };
-            }
-
-            dibujarTarjetasNodos();
-            if(!document.getElementById('txt-cargando').innerHTML.includes('Simulación')) {
-                document.getElementById('txt-cargando').style.display = 'none';
-            }
-        }
-
-        function dibujarTarjetasNodos() {
-            const grid = document.getElementById('grid-nodos');
-            grid.innerHTML = '';
-            
-            sucursalesRed.forEach(suc => {
-                const icono = suc.id === 999 ? 'fa-building' : 'fa-store';
-                const esLocal = suc.id === SUCURSAL_LOCAL;
-                const borderStyle = esLocal ? 'border-color:var(--7v-green); border-left: 4px solid var(--7v-green);' : '';
-                
-                grid.innerHTML += `
-                    <div class="sucursal-card" style="${borderStyle}">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <b style="font-size:0.95rem; color:var(--text-main);"><i class="fas ${icono}" style="color:${esLocal ? 'var(--7v-green)' : 'var(--text-muted)'}; margin-right:5px;"></i> TIENDA-${suc.id.toString().padStart(3, '0')} <br> <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted);">${suc.nombre}</span></b>
-                            <span class="badge-online"><i class="fas fa-circle" style="font-size:0.4rem;"></i> ACTIVA</span>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function buscarProducto() {
-            const query = document.getElementById('buscador-global').value.toLowerCase().trim();
-            const contenedorResultados = document.getElementById('resultados-busqueda');
-            const tbodyResultados = document.getElementById('tabla-resultados');
-            
-            if (query === '') {
-                contenedorResultados.style.display = 'none';
-                return;
-            }
-
-            contenedorResultados.style.display = 'block';
-            tbodyResultados.innerHTML = '';
-            let encontrados = 0;
-
-            for (const sku in inventarioMatematico) {
-                const nombre = inventarioMatematico[sku].nombre.toLowerCase();
-                if (sku.toLowerCase().includes(query) || nombre.includes(query)) {
-                    encontrados++;
-                    const yaEnLista = listaCotizacion.some(item => item.sku === sku);
-                    const btn = yaEnLista 
-                        ? `<span style="color:var(--7v-green); font-weight:bold; font-size:0.8rem;"><i class="fas fa-check"></i> Agregado</span>`
-                        : `<button class="btn-add" onclick="agregarACotizacion('${sku}', '${inventarioMatematico[sku].nombre.replace(/'/g, "\\'")}')"><i class="fas fa-plus"></i> Agregar</button>`;
-
-                    tbodyResultados.innerHTML += `
-                        <tr>
-                            <td style="font-family: monospace; color: var(--text-muted);">${sku}</td>
-                            <td style="font-weight: bold;">${inventarioMatematico[sku].nombre}</td>
-                            <td style="text-align:center;"><input type="number" id="cant_busqueda_${sku}" class="input-qty" value="1" min="1"></td>
-                            <td>${btn}</td>
-                        </tr>
-                    `;
-                    if (encontrados > 6) break; 
+        while (true) {
+            const res = await fetch(url, {
+                headers: {
+                    ...HEADERS_BASE,
+                    'Range-Unit': 'items',
+                    'Range': `${from}-${from + pageSize - 1}`
                 }
+            });
+
+            if (!res.ok && res.status !== 206) {
+                throw new Error(`Error de Supabase: ${res.status} al consultar ${url}`);
             }
 
-            if (encontrados === 0) {
-                tbodyResultados.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">No se encontraron coincidencias.</td></tr>`;
+            const chunk = await res.json();
+            if (!Array.isArray(chunk) || chunk.length === 0) break;
+
+            all = all.concat(chunk);
+            if (chunk.length < pageSize) break; 
+            from += pageSize;
+        }
+        return all;
+    }
+
+    // 2. SINCRONIZAR RED CORREGIDA
+    async function preCargarRed() {
+        const txtCargando = document.getElementById('txt-cargando');
+        txtCargando.style.display = 'inline-block';
+        txtCargando.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
+
+        try {
+            // CORRECCIÓN: Apuntamos a 'inventario' en lugar de 'inventario_nodos' e intentamos traer las sucursales
+            const [datosProd, datosInv, datosSuc] = await Promise.all([
+                fetchAllPaginado(`${SUPABASE_URL}/productos?select=*`),
+                fetchAllPaginado(`${SUPABASE_URL}/inventario?select=*`),
+                fetchAllPaginado(`${SUPABASE_URL}/sucursales?select=*`).catch(() => []) 
+            ]);
+
+            // Mapeo dinámico de sucursales
+            if (Array.isArray(datosSuc) && datosSuc.length > 0) {
+                sucursalesRed = datosSuc.map(s => ({
+                    id: parseInt(s.id_sucursal),
+                    nombre: s.nombre || `Sucursal ${s.id_sucursal}`
+                })).sort((a, b) => a.id - b.id);
+            } else {
+                sucursalesRed = Object.keys(nombresSucursales).map(id => ({ id: parseInt(id), nombre: nombresSucursales[id] })).sort((a, b) => a.id - b.id);
+            }
+
+            const dictProd = {};
+            const dictProdIdToSku = {};
+            
+            if (Array.isArray(datosProd)) {
+                datosProd.forEach(p => {
+                    const nombre = p.nombre_producto || p.nombre_pieza || p.nombre || p.descripcion || 'Producto sin nombre';
+                    const sku = p.sku_id || p.codigo_barras;
+                    dictProd[sku] = nombre; 
+                    if (p.id_producto) dictProdIdToSku[p.id_producto] = sku; // Vincula ID con Código
+                });
+            }
+
+            inventarioMatematico = {};
+            datosInv.forEach(registro => {
+                // Si la tabla usa id_producto (nuevo esquema), lo traducimos a SKU
+                let sku = registro.sku_id || registro.codigo_barras;
+                if (!sku && registro.id_producto) {
+                    sku = dictProdIdToSku[registro.id_producto];
+                }
+                
+                if (!sku) return;
+
+                const idSuc = parseInt(registro.id_sucursal);
+
+                if (!inventarioMatematico[sku]) {
+                    inventarioMatematico[sku] = {
+                        nombre: dictProd[sku] || 'Producto Desconocido',
+                        stockPorSucursal: {}
+                    };
+                }
+
+                if (inventarioMatematico[sku].stockPorSucursal[idSuc] === undefined) {
+                    inventarioMatematico[sku].stockPorSucursal[idSuc] = 0;
+                }
+                inventarioMatematico[sku].stockPorSucursal[idSuc] += parseInt(registro.cantidad_actual || registro.stock || 0);
+            });
+
+        } catch (e) {
+            console.error('Fallo la carga real, usando simulación segura:', e);
+            txtCargando.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--7v-orange);"></i> Simulación';
+
+            // Simulación en caso de quedarse sin internet
+            sucursalesRed = Object.keys(nombresSucursales).map(id => ({ id: parseInt(id), nombre: nombresSucursales[id] })).sort((a, b) => a.id - b.id);
+            inventarioMatematico = {
+                '75010111': { nombre: 'Coca Cola Regular 600ml', stockPorSucursal: { 1: 24, 2: 12, 3: 15, 4: 0, 5: 5, 13: 50 } },
+                '75010222': { nombre: 'Gansito Marinela 50g', stockPorSucursal: { 1: 5, 2: 2, 3: 20, 4: 15, 5: 0, 13: 30 } },
+                '75010333': { nombre: 'Bolsa de Hielo 5kg', stockPorSucursal: { 1: 0, 2: 0, 3: 5, 4: 10, 5: 25, 13: 10 } },
+                '75010444': { nombre: 'Café Andatti Clásico', stockPorSucursal: { 1: 30, 2: 15, 3: 10, 4: 20, 5: 12, 13: 100 } }
+            };
+        }
+
+        dibujarTarjetasNodos();
+
+        if (!txtCargando.innerHTML.includes('Simulación')) {
+            txtCargando.style.display = 'none';
+        }
+    }
+
+    function abrirLogin() {
+        Swal.fire({ title: 'Control de Acceso', text: 'El modal de inicio de sesión se conectará aquí próximamente.', icon: 'info', confirmButtonColor: '#007934' });
+    }
+
+    function dibujarTarjetasNodos() {
+        const grid = document.getElementById('grid-nodos');
+        grid.innerHTML = '';
+
+        sucursalesRed.forEach(suc => {
+            const icono = suc.id === 1 ? 'fa-building' : 'fa-store';
+            const esLocal = suc.id === SUCURSAL_LOCAL;
+            const borderStyle = esLocal ? 'border-color:var(--7v-green); border-left: 4px solid var(--7v-green);' : '';
+
+            const accion = esLocal ? `window.location.href='inventario.html'` : `verCatalogoTienda(${suc.id}, '${suc.nombre.replace(/'/g, "\\'")}')`;
+            const textoBtn = esLocal ? '<i class="fas fa-boxes"></i> Ir a mi Inventario' : '<i class="fas fa-eye"></i> Ver Catálogo';
+
+            grid.innerHTML += `
+                <div class="sucursal-card" style="${borderStyle}" onclick="${accion}">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="font-size:0.95rem; color:var(--text-main);">
+                            <i class="fas ${icono}" style="color:${esLocal ? 'var(--7v-green)' : 'var(--text-muted)'}; margin-right:5px;"></i>
+                            TIENDA-${suc.id.toString().padStart(3, '0')} <br>
+                            <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted);">${suc.nombre}</span>
+                        </b>
+                        <span class="badge-online"><i class="fas fa-circle" style="font-size:0.4rem;"></i> ACTIVA</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--7v-green); margin-top:8px; text-align:right; font-weight:bold;">${textoBtn}</div>
+                </div>
+            `;
+        });
+    }
+
+    function verCatalogoTienda(idSuc, nombreSuc) {
+        document.getElementById('modal-titulo-tienda').innerHTML = `<i class="fas fa-store"></i> Inventario: ${nombreSuc}`;
+        const tbody = document.getElementById('tabla-modal-inventario');
+        tbody.innerHTML = '';
+
+        const filas = [];
+        for (const sku in inventarioMatematico) {
+            const stock = inventarioMatematico[sku].stockPorSucursal[idSuc] || 0;
+            if (stock > 0) {
+                filas.push({ sku: sku, nombre: inventarioMatematico[sku].nombre, stock: stock });
             }
         }
 
-        function cerrarBusqueda() {
-            document.getElementById('resultados-busqueda').style.display = 'none';
-            document.getElementById('buscador-global').value = '';
-        }
+        filas.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-        function agregarACotizacion(sku, nombre) {
-            const inputCant = document.getElementById(`cant_busqueda_${sku}`);
-            const cant = parseInt(inputCant.value) || 1;
-
-            if (!listaCotizacion.some(item => item.sku === sku)) {
-                listaCotizacion.push({ sku: sku, nombre: nombre, cant: cant });
-                renderizarCotizacion();
-                evaluarViabilidadRed();
-            }
-            cerrarBusqueda();
-        }
-
-        function eliminarDeCotizacion(sku) {
-            listaCotizacion = listaCotizacion.filter(item => item.sku !== sku);
-            renderizarCotizacion();
-            evaluarViabilidadRed();
-        }
-
-        function limpiarCotizacion() {
-            listaCotizacion = [];
-            renderizarCotizacion();
-            evaluarViabilidadRed();
-        }
-
-        function renderizarCotizacion() {
-            const tbody = document.getElementById('tabla-cotizacion');
-            if (listaCotizacion.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-muted);">Busca y agrega productos arriba para encontrar la tienda que los tenga.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = '';
-            listaCotizacion.forEach(item => {
+        if (filas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted);">No hay productos registrados con stock en esta sucursal.</td></tr>`;
+        } else {
+            filas.forEach(f => {
                 tbody.innerHTML += `
                     <tr>
-                        <td style="font-family: monospace; color: var(--text-muted);">${item.sku}</td>
-                        <td style="font-weight: bold;">${item.nombre}</td>
-                        <td style="text-align:center; font-weight:bold; color:var(--7v-green); font-size:1.1rem;">x${item.cant}</td>
-                        <td><button class="btn-remove" onclick="eliminarDeCotizacion('${item.sku}')"><i class="fas fa-trash-alt"></i></button></td>
+                        <td style="font-family: monospace; color: var(--text-muted);">${f.sku}</td>
+                        <td style="font-weight: bold;">${f.nombre}</td>
+                        <td style="text-align:center; font-weight:bold; color:var(--7v-green); font-size:1.1rem;">${f.stock}</td>
                     </tr>
                 `;
             });
         }
+        document.getElementById('modal-catalogo').style.display = 'flex';
+    }
 
-        function evaluarViabilidadRed() {
-            const panel = document.getElementById('panel-viabilidad');
-            
-            if (listaCotizacion.length === 0) {
-                panel.innerHTML = `
-                    <div class="panel-header" style="background:var(--input-bg);">
-                        <span style="color:var(--text-main);"><i class="fas fa-satellite-dish"></i> Viabilidad de Surtido</span>
-                    </div>
-                    <div style="text-align:center; padding:30px 20px; color:var(--text-muted);">
-                        <i class="fas fa-box-open" style="font-size:2rem; margin-bottom:10px; opacity:0.5;"></i><br>
-                        Agrega productos a la lista para evaluar qué tienda cercana puede surtir el pedido completo sin hacer múltiples viajes.
-                    </div>
-                `;
-                return;
-            }
+    function cerrarModal() {
+        document.getElementById('modal-catalogo').style.display = 'none';
+    }
+    window.onclick = function (event) {
+        if (event.target === document.getElementById('modal-catalogo')) cerrarModal();
+    };
 
-            const resultados = [];
+    function buscarProducto() {
+        const query = document.getElementById('buscador-global').value.toLowerCase().trim();
+        const contenedorResultados = document.getElementById('resultados-busqueda');
+        const tbodyResultados = document.getElementById('tabla-resultados');
 
-            sucursalesRed.forEach(suc => {
-                let itemsSurtidos = 0;
-                let detallesFaltantes = [];
-
-                listaCotizacion.forEach(req => {
-                    const stockNodo = inventarioMatematico[req.sku]?.stockPorSucursal[suc.id] || 0;
-                    if (stockNodo >= req.cant) {
-                        itemsSurtidos++;
-                    } else {
-                        detallesFaltantes.push(`${req.sku} (Tienen ${stockNodo})`);
-                    }
-                });
-
-                resultados.push({
-                    id: suc.id,
-                    nombre: suc.nombre,
-                    surtidos: itemsSurtidos,
-                    totalReq: listaCotizacion.length,
-                    faltantes: detallesFaltantes
-                });
-            });
-
-            resultados.sort((a, b) => b.surtidos - a.surtidos);
-
-            let htmlCards = `<div class="panel-header" style="background:var(--input-bg); position: sticky; top: 0; z-index: 5;">
-                                <span style="color:var(--text-main);"><i class="fas fa-satellite-dish"></i> Viabilidad de Surtido</span>
-                             </div>`;
-            
-            htmlCards += `<div style="padding:15px; border-bottom:1px solid var(--border); background:var(--input-bg);">
-                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 8px; font-weight:bold;"><i class="fas fa-box"></i> RESUMEN DE PAQUETE:</div>`;
-            listaCotizacion.forEach(req => {
-                htmlCards += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; margin-bottom:5px;">
-                    <span><span style="font-family: monospace; color: var(--text-muted);">${req.sku}</span></span>
-                    <span style="font-weight:bold; color:var(--7v-green);">x${req.cant}</span>
-                </div>`;
-            });
-            htmlCards += `</div><div class="table-scroll-container">`;
-            
-            let encontroSolucionIdeal = false;
-
-            resultados.forEach(res => {
-                if (res.surtidos === 0) return; 
-
-                let clase = 'none';
-                let icono = '';
-                let textoEstado = '';
-
-                if (res.surtidos === res.totalReq) {
-                    clase = 'perfect';
-                    icono = '<i class="fas fa-check-circle" style="color:var(--7v-green); font-size:1.5rem;"></i>';
-                    textoEstado = `<span style="color:var(--7v-green); font-weight:bold;">Surtido Completo (${res.surtidos}/${res.totalReq})</span>`;
-                    encontroSolucionIdeal = true;
-                } else {
-                    clase = 'partial';
-                    icono = '<i class="fas fa-exclamation-circle" style="color:var(--7v-orange); font-size:1.5rem;"></i>';
-                    textoEstado = `<span style="color:var(--7v-orange); font-weight:bold;">Surtido Parcial (${res.surtidos}/${res.totalReq})</span><br><span style="font-size:0.75rem; color:var(--text-muted);">Falta: ${res.faltantes.join(', ')}</span>`;
-                }
-
-                htmlCards += `
-                    <div class="eval-card ${clase}">
-                        <div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">TIENDA-${res.id.toString().padStart(3, '0')}</div>
-                            <div style="font-weight:bold; margin-bottom:5px; color:var(--text-main);">${res.nombre}</div>
-                            <div style="font-size:0.85rem;">${textoEstado}</div>
-                        </div>
-                        <div>${icono}</div>
-                    </div>
-                `;
-            });
-
-            htmlCards += `</div>`; 
-
-            if (!encontroSolucionIdeal) {
-                htmlCards = `
-                    <div class="panel-header" style="background:var(--7v-red); color:white; position: sticky; top: 0; z-index: 5;">
-                        <span><i class="fas fa-exclamation-triangle"></i> Riesgo de Inventario Incompleto</span>
-                    </div>
-                    <div style="padding:15px; background:#fef2f2; font-size:0.85rem; color:var(--text-main); border-bottom: 1px solid var(--border);">
-                        Ninguna tienda cercana tiene el stock suficiente para cubrir toda tu lista. Tendrás que pedir a múltiples sucursales o contactar al CEDIS.
-                    </div>
-                ` + htmlCards.replace('<div class="panel-header" style="background:var(--input-bg); position: sticky; top: 0; z-index: 5;">\n                                <span style="color:var(--text-main);"><i class="fas fa-satellite-dish"></i> Viabilidad de Surtido</span>\n                             </div>', '');
-            }
-
-            panel.innerHTML = htmlCards;
+        if (query === '') {
+            contenedorResultados.style.display = 'none';
+            return;
         }
 
-        window.onload = preCargarRed;
-    </script>
+        contenedorResultados.style.display = 'block';
+        tbodyResultados.innerHTML = '';
+        let encontrados = 0;
+
+        for (const sku in inventarioMatematico) {
+            const itemNombreStr = String(inventarioMatematico[sku].nombre || '').toLowerCase();
+            const skuStr = String(sku).toLowerCase();
+
+            if (skuStr.includes(query) || itemNombreStr.includes(query)) {
+                encontrados++;
+                const yaEnLista = listaCotizacion.some(item => item.sku === sku);
+                
+                const btn = yaEnLista
+                    ? `<span style="color:var(--7v-green); font-weight:bold; font-size:0.8rem;"><i class="fas fa-check"></i> Agregado</span>`
+                    : `<button class="btn-add" onclick="agregarACotizacion('${sku}')"><i class="fas fa-plus"></i> Agregar</button>`;
+
+                tbodyResultados.innerHTML += `
+                    <tr>
+                        <td style="font-family: monospace; color: var(--text-muted);">${sku}</td>
+                        <td style="font-weight: bold;">${inventarioMatematico[sku].nombre}</td>
+                        <td style="text-align:center;">
+                            <input type="number" id="cant_busqueda_${sku}" class="input-qty" value="1" min="1">
+                        </td>
+                        <td>${btn}</td>
+                    </tr>
+                `;
+                if (encontrados > 6) break;
+            }
+        }
+
+        if (encontrados === 0) {
+            tbodyResultados.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">No se encontraron coincidencias.</td></tr>`;
+        }
+    }
+
+    function cerrarBusqueda() {
+        document.getElementById('resultados-busqueda').style.display = 'none';
+        document.getElementById('buscador-global').value = '';
+    }
+
+    function agregarACotizacion(sku) {
+        const inputCant = document.getElementById(`cant_busqueda_${sku}`);
+        const cant = inputCant ? (parseInt(inputCant.value) || 1) : 1;
+        const nombre = inventarioMatematico[sku]?.nombre || 'Producto Desconocido';
+
+        if (!listaCotizacion.some(item => item.sku === sku)) {
+            listaCotizacion.push({ sku: sku, nombre: nombre, cant: cant });
+            renderizarCotizacion();
+            evaluarViabilidadRed();
+        }
+        cerrarBusqueda();
+    }
+
+    function eliminarDeCotizacion(sku) {
+        listaCotizacion = listaCotizacion.filter(item => item.sku !== sku);
+        renderizarCotizacion();
+        evaluarViabilidadRed();
+    }
+
+    function limpiarCotizacion() {
+        listaCotizacion = [];
+        renderizarCotizacion();
+        evaluarViabilidadRed();
+    }
+
+    function renderizarCotizacion() {
+        const tbody = document.getElementById('tabla-cotizacion');
+        if (listaCotizacion.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-muted);">Busca y agrega productos arriba para encontrar la tienda que los tenga.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = '';
+        listaCotizacion.forEach(item => {
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-family: monospace; color: var(--text-muted);">${item.sku}</td>
+                    <td style="font-weight: bold;">${item.nombre}</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--7v-green); font-size:1.1rem;">x${item.cant}</td>
+                    <td><button class="btn-remove" onclick="eliminarDeCotizacion('${item.sku}')"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>
+            `;
+        });
+    }
+
+    function evaluarViabilidadRed() {
+        const panel = document.getElementById('panel-viabilidad');
+
+        if (listaCotizacion.length === 0) {
+            panel.innerHTML = `
+                <div class="panel-header" style="background:var(--input-bg);">
+                    <span style="color:var(--text-main);"><i class="fas fa-satellite-dish"></i> Viabilidad de Surtido</span>
+                </div>
+                <div style="text-align:center; padding:30px 20px; color:var(--text-muted);">
+                    <i class="fas fa-box-open" style="font-size:2rem; margin-bottom:10px; opacity:0.5;"></i><br>
+                    Agrega productos a la lista para evaluar qué tienda cercana puede surtir el pedido completo sin hacer múltiples viajes.
+                </div>
+            `;
+            return;
+        }
+
+        const resultados = [];
+        sucursalesRed.forEach(suc => {
+            let itemsSurtidos = 0;
+            let detallesFaltantes = [];
+
+            listaCotizacion.forEach(req => {
+                const stockNodo = inventarioMatematico[req.sku]?.stockPorSucursal[suc.id] || 0;
+                if (stockNodo >= req.cant) {
+                    itemsSurtidos++;
+                } else {
+                    detallesFaltantes.push(`${req.sku} (Tienen ${stockNodo})`);
+                }
+            });
+
+            resultados.push({ id: suc.id, nombre: suc.nombre, surtidos: itemsSurtidos, totalReq: listaCotizacion.length, faltantes: detallesFaltantes });
+        });
+
+        resultados.sort((a, b) => b.surtidos - a.surtidos);
+        let htmlCards = `<div class="panel-header" style="background:var(--input-bg); position: sticky; top: 0; z-index: 5;"><span style="color:var(--text-main);"><i class="fas fa-satellite-dish"></i> Viabilidad de Surtido</span></div>`;
+        htmlCards += `<div style="padding:15px; border-bottom:1px solid var(--border); background:var(--input-bg);"><div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 8px; font-weight:bold;"><i class="fas fa-box"></i> RESUMEN DE PAQUETE:</div>`;
+
+        listaCotizacion.forEach(req => {
+            htmlCards += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; margin-bottom:5px;"><span><span style="font-family: monospace; color: var(--text-muted);">${req.sku}</span></span><span style="font-weight:bold; color:var(--7v-green);">x${req.cant}</span></div>`;
+        });
+
+        htmlCards += `</div><div class="table-scroll-container">`;
+        let encontroSolucionIdeal = false;
+
+        resultados.forEach(res => {
+            if (res.surtidos === 0) return;
+            let clase = 'none', icono = '', textoEstado = '';
+
+            if (res.surtidos === res.totalReq) {
+                clase = 'perfect'; icono = '<i class="fas fa-check-circle" style="color:var(--7v-green); font-size:1.5rem;"></i>'; textoEstado = `<span style="color:var(--7v-green); font-weight:bold;">Surtido Completo (${res.surtidos}/${res.totalReq})</span>`; encontroSolucionIdeal = true;
+            } else {
+                clase = 'partial'; icono = '<i class="fas fa-exclamation-circle" style="color:var(--7v-orange); font-size:1.5rem;"></i>'; textoEstado = `<span style="color:var(--7v-orange); font-weight:bold;">Surtido Parcial (${res.surtidos}/${res.totalReq})</span><br><span style="font-size:0.75rem; color:var(--text-muted);">Falta: ${res.faltantes.join(', ')}</span>`;
+            }
+
+            htmlCards += `<div class="eval-card ${clase}"><div><div style="font-size:0.8rem; color:var(--text-muted);">TIENDA-${res.id.toString().padStart(3, '0')}</div><div style="font-weight:bold; margin-bottom:5px; color:var(--text-main);">${res.nombre}</div><div style="font-size:0.85rem;">${textoEstado}</div></div><div>${icono}</div></div>`;
+        });
+        htmlCards += `</div>`;
+
+        if (!encontroSolucionIdeal) {
+            htmlCards = htmlCards.replace(/<div class="panel-header" style="background:var\(--input-bg\); position: sticky; top: 0; z-index: 5;">[\s\S]*?<\/div>/, '');
+            htmlCards = `<div class="panel-header" style="background:var(--7v-red); color:white; position: sticky; top: 0; z-index: 5;"><span><i class="fas fa-exclamation-triangle"></i> Riesgo de Inventario Incompleto</span></div><div style="padding:15px; background:#fef2f2; font-size:0.85rem; color:var(--text-main); border-bottom: 1px solid var(--border);">Ninguna tienda cercana tiene el stock suficiente para cubrir toda tu lista. Tendrás que pedir a múltiples sucursales o contactar al CEDIS.</div>` + htmlCards;
+        }
+        panel.innerHTML = htmlCards;
+    }
+
+    window.addEventListener('DOMContentLoaded', preCargarRed);
+</script>
 </body>
 </html>

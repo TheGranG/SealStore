@@ -407,22 +407,15 @@
     <script>
         const API_KEY = 'sb_publishable_3mTZ7NYM3JLzM4VVVTnRAw_GbLrVIhb';
 
+
         function abrirLogin() {
-            Swal.fire({
-                title: 'Control de Acceso',
-                text: 'El modal de inicio de sesión se conectará aquí próximamente.',
-                icon: 'info',
-                background: '#ffffff',
-                color: '#333333',
-                confirmButtonColor: '#007934'
-            });
+            Swal.fire({ title: 'Control de Acceso', text: 'El modal de inicio de sesión se conectará aquí próximamente.', icon: 'info', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
         }
 
         async function cargarTablas() {
             try {
                 const res = await fetch('api_prestamos_activos.php');
                 const data = await res.json();
-
                 if (data.error) throw new Error();
 
                 const t1 = document.getElementById('tabla-deudas');
@@ -430,7 +423,7 @@
                 let c1 = 0,
                 c2 = 0;
 
-            // --- TABLA 1: YO PEDÍ (MIS DEUDAS) ---
+            // --- TABLA 1: MIS DEUDAS (YO PEDÍ) ---
                 t1.innerHTML = '';
                 if (data.mis_deudas.length === 0) t1.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 20px;">No hay traspasos activos.</td></tr>';
 
@@ -438,26 +431,15 @@
                     const st = item.estado.trim().toUpperCase();
                     let btn = '';
                     let colorStatus = '';
-                    const nombreMostrar = item.productos ? .nombre_producto || item.productos ? .nombre_pieza || 'N/A';
+                    const nombreMostrar = item.productos ? item.productos.nombre_producto : 'ID: ' + item.sku_id;
 
                     if (st.includes('RECHAZADO') || st.includes('CANCELADO')) {
                         colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
-                    } else if (st.includes('OFREZCO') || st.includes('OFERTA') || st.includes('CONTRAOFERTA')) {
-                        colorStatus = 'background: #fef9c3; color: #854d0e; border: 1px solid #fef08a;';
-                        const match = st.match(/\d+/);
-                        const cant = match ? match[0] : item.cantidad;
-                        btn = `<button class="btn-action btn-success" onclick="responderPrestamo(${item.id_prestamo}, 'ACEPTAR_OFERTA', ${cant})">Aceptar (${cant})</button>
-                        <button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'CANCELADO')">Cancelar</button>`;
-                    // Cambia esta línea:
-// } else if (st === 'PENDIENTE' || st.includes('SOLICITADO')) {
-
-// Por esta nueva línea que incluye ACTIVO:
-} else if (st === 'PENDIENTE' || st.includes('SOLICITADO') || st === 'ACTIVO') {
-    colorStatus = 'background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;';
-    btn = `<button class="btn-action btn-success" onclick="responderPrestamo(${item.id_prestamo}, 'ACEPTADO')">Autorizar</button>
-           <button class="btn-action btn-warning" onclick="ofertarMenos(${item.id_prestamo}, ${item.cantidad})">Ofrecer menos</button>
-           <button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'RECHAZADO')">Rechazar</button>`;
-} else if (st === 'ACEPTADO') {
+                    } else if (st === 'PENDIENTE' || st.includes('SOLICITADO')) {
+                        colorStatus = 'background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;';
+                        btn = `<button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'CANCELADO')">Cancelar Petición</button>`;
+                    } else if (st === 'ACEPTADO' || st === 'ACTIVO') {
+                    // AQUÍ ESTÁ TU CONDICIÓN PARA "ACTIVO"
                         colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
                         btn = `<button class="btn-action btn-success" onclick="recibirStock(${item.id_prestamo})"><i class="fas fa-download"></i> Recibir Mercancía</button>`;
                     } else if (st === 'EN_DEUDA') {
@@ -466,22 +448,20 @@
                         btn = `<button class="btn-action btn-warning" onclick="pagarDeudaManual(${item.id_prestamo})"><i class="fas fa-box-open"></i> Reponer c/Stock</button>`;
                     } else if (st.includes('RECIBIDO') || st.includes('COMPLETADO')) {
                         colorStatus = 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;';
-                    } else {
-                        colorStatus = 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;';
-                    }
+                    } else { colorStatus = 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;'; }
 
                     t1.innerHTML += `<tr>
-                        <td><span class="sku-tag">${item.folio}</span></td>
-                        <td style="font-weight: bold;">${item.sku_id}</td>
-                        <td>${nombreMostrar}</td>
-                        <td>Tienda ${item.sucursal_prestadora}</td>
-                        <td style="text-align:center; font-weight:bold;">${item.cantidad}</td>
-                        <td style="text-align:center;"><span class="status-pill" style="${colorStatus}">${st}</span></td>
-                        <td>${btn}</td>
+                    <td><span class="sku-tag">${item.folio}</span></td>
+                    <td style="font-weight: bold;">${item.sku_id}</td>
+                    <td>${nombreMostrar}</td>
+                    <td>Tienda ${item.sucursal_prestadora}</td>
+                    <td style="text-align:center; font-weight:bold;">${item.cantidad}</td>
+                    <td style="text-align:center;"><span class="status-pill" style="${colorStatus}">${st}</span></td>
+                    <td>${btn}</td>
                 </tr>`;
             });
 
-            // --- TABLA 2: YO PRESTÉ (ME DEBEN) ---
+            // --- TABLA 2: PRÉSTAMOS A FAVOR (YO PRESTÉ) ---
                 t2.innerHTML = '';
                 if (data.me_deben.length === 0) t2.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 20px;">No hay traspasos pendientes.</td></tr>';
 
@@ -489,145 +469,99 @@
                     const st = item.estado.trim().toUpperCase();
                     let colorStatus = '';
                     let btn = '';
-                    const nombreMostrar = item.productos ? .nombre_producto || item.productos ? .nombre_pieza || 'N/A';
+                    const nombreMostrar = item.productos ? item.productos.nombre_producto : 'ID: ' + item.sku_id;
 
                     if (st.includes('RECHAZADO') || st.includes('CANCELADO')) {
                         colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
                     } else if (st === 'PENDIENTE' || st.includes('SOLICITADO')) {
-                    colorStatus = 'background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;'; // O la variable de color que estés usando
-                    btn = `<button class="btn-action btn-success" onclick="responderPrestamo(${item.id_prestamo}, 'ACEPTADO')">Autorizar</button>
-           <button class="btn-action btn-warning" onclick="ofertarMenos(${item.id_prestamo}, ${item.cantidad})">Ofrecer menos</button>
-                    <button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'RECHAZADO')">Rechazar</button>`;
-                } else if (st.includes('OFREZCO') || st.includes('OFERTA') || st.includes('CONTRAOFERTA')) {
-                    colorStatus = 'background: #fef9c3; color: #854d0e; border: 1px solid #fef08a;';
-                } else if (st === 'ACEPTADO') {
-                    colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
-                } else if (st === 'EN_DEUDA') {
-                    colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
-                    c2 += parseInt(item.cantidad);
-                } else if (st.includes('RECIBIDO') || st.includes('COMPLETADO')) {
-                    colorStatus = 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;';
-                } else if (st.includes('TRANSITO') || st.includes('TRANCITO')) {
-                    colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
-                    btn = `<button class="btn-action" style="background:var(--info-blue); color:white;" onclick="recibirDevolucion(${item.id_prestamo})"><i class="fas fa-undo"></i> Recibir Reposición</button>`;
-                } else {
-                    colorStatus = 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;';
-                }
+                        colorStatus = 'background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;';
+                    // Al autorizar, cambiamos el estado a ACTIVO para la otra sucursal
+                        btn = `<button class="btn-action btn-success" onclick="responderPrestamo(${item.id_prestamo}, 'ACTIVO')">Autorizar</button>
+                        <button class="btn-action btn-danger" onclick="responderPrestamo(${item.id_prestamo}, 'RECHAZADO')">Rechazar</button>`;
+                    } else if (st === 'ACEPTADO' || st === 'ACTIVO') {
+                        colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
+                    // Sin botón, esperamos a que la otra sucursal reciba
+                    } else if (st === 'EN_DEUDA') {
+                        colorStatus = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
+                        c2 += parseInt(item.cantidad);
+                    } else if (st.includes('PAGADO') || st.includes('TRANCITO')) {
+                        colorStatus = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
+                        btn = `<button class="btn-action" style="background:var(--info-blue); color:white;" onclick="recibirDevolucion(${item.id_prestamo})"><i class="fas fa-undo"></i> Recibir Reposición</button>`;
+                    } else if (st.includes('RECIBIDO') || st.includes('COMPLETADO')) {
+                        colorStatus = 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;';
+                    } else { colorStatus = 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;'; }
 
-                t2.innerHTML += `<tr>
-                        <td><span class="sku-tag">${item.folio}</span></td>
-                        <td style="font-weight: bold;">${item.sku_id}</td>
-                        <td>${nombreMostrar}</td>
-                        <td>Tienda ${item.sucursal_solicitante}</td>
-                        <td style="text-align:center; font-weight:bold;">${item.cantidad}</td>
-                        <td style="text-align:center;"><span class="status-pill" style="${colorStatus}">${st}</span></td>
-                        <td>${btn}</td>
-            </tr>`;
-        });
+                    t2.innerHTML += `<tr>
+                    <td><span class="sku-tag">${item.folio}</span></td>
+                    <td style="font-weight: bold;">${item.sku_id}</td>
+                    <td>${nombreMostrar}</td>
+                    <td>Tienda ${item.sucursal_solicitante}</td>
+                    <td style="text-align:center; font-weight:bold;">${item.cantidad}</td>
+                    <td style="text-align:center;"><span class="status-pill" style="${colorStatus}">${st}</span></td>
+                    <td>${btn}</td>
+                </tr>`;
+            });
 
                 document.getElementById('kpi-deudas').innerText = c1 + ' pz';
                 document.getElementById('kpi-prestado').innerText = c2 + ' pz';
             } catch (e) {
-                document.getElementById('tabla-deudas').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--7v-orange);">Modo Simulación: Esperando conexión con BD central.</td></tr>';
-                document.getElementById('tabla-prestados').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--7v-orange);">Modo Simulación: Esperando conexión con BD central.</td></tr>';
+                console.error(e);
+                document.getElementById('tabla-deudas').innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--7v-red);">Error al renderizar las tablas.</td></tr>';
             }
         }
 
-        async function ofertarMenos(id, cantActual) {
-            const { value: cant } = await Swal.fire({
-                title: 'Ofrecer menos',
-                input: 'number',
-                inputLabel: `Solicitan ${cantActual} pz. ¿Cuántas puedes enviar?`,
-                inputValue: cantActual - 1,
-                showCancelButton: true,
-                background: '#ffffff',
-                color: '#333333',
-                confirmButtonColor: '#F37021',
-                inputValidator: (value) => { if (!value || value <= 0 || value >= cantActual) return 'Ingresa cantidad válida menor a la solicitada'; }
-            });
-            if (cant) responderPrestamo(id, 'OFERTA', cant);
-        }
-
-        async function responderPrestamo(id, accion, cantExtra = null) {
+    // Funciones API (Mantienen la misma estructura, conectan con los nuevos PHP)
+        async function responderPrestamo(id, accion) {
             Swal.fire({ title: 'Procesando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
             try {
-            // Aseguramos la ruta absoluta de Alwaysdata para el entorno móvil
-                const res = await fetch('https://gdb.alwaysdata.net/api_responder_prestamo.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_prestamo: id, accion: accion, cantidad: cantExtra })
-                });
-
-            // Doble lectura: atrapa texto HTML si PHP colapsa
-                const text = await res.text();
-                try {
-                    const data = JSON.parse(text);
-                    if (data.error) {
-                        Swal.fire({ icon: 'error', title: 'Aviso BD', text: data.mensaje });
-                    } else {
-                        Swal.fire({ icon: 'success', title: 'Actualizado', timer: 1500, showConfirmButton: false });
-                    cargarTablas(); // Cambiar a cargarPrestamos() si así llamas a tu función
-                }
-            } catch (parseError) {
-                Swal.fire({ icon: 'error', title: 'Fallo PHP', text: text.substring(0, 100) });
-            }
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'El servidor no responde o no hay internet.' });
-        }
-    }
-    async function recibirStock(id) {
-        Swal.fire({ title: 'Recibiendo...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
-        try {
-            const res = await fetch('api_confirmar_recepcion.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
-            const data = await res.json();
-            if (!data.error) {
-                Swal.fire({ icon: 'success', title: 'Mercancía en Piso', text: 'La mercancía se sumó al inventario local.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
-                cargarTablas();
-            }
-        } catch (e) {
-            Swal.fire({ icon: 'success', title: 'Simulación', text: 'Mercancía recibida en piso.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
-        }
-    }
-
-    async function recibirDevolucion(id) {
-        Swal.fire({ title: 'Recuperando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
-        try {
-            const res = await fetch('api_recibir_devolucion.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
-            const data = await res.json();
-            if (!data.error) {
-                Swal.fire({ icon: 'success', title: 'Reposición Exitosa', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
-                cargarTablas();
-            }
-        } catch (e) {
-            Swal.fire({ icon: 'success', title: 'Simulación', text: 'Reposición aplicada.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
-        }
-    }
-
-    async function pagarDeudaManual(id) {
-        const conf = await Swal.fire({
-            title: '¿Reponer con stock en piso?',
-            text: 'Se descontará de tu inventario actual para enviarlo a la tienda origen.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, enviar reposición',
-            background: '#ffffff',
-            color: '#333333',
-            confirmButtonColor: '#F37021'
-        });
-        if (conf.isConfirmed) {
-            Swal.fire({ title: 'Procesando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
-            try {
-                const res = await fetch('api_pagar_deuda_manual.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
+                const res = await fetch('api_responder_prestamo.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id, accion: accion }) });
                 const data = await res.json();
-                if (data.error) Swal.fire({ icon: 'error', title: 'Aviso', text: data.mensaje, background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021' });
+                if (data.error) Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, background: '#ffffff', color: '#333333', confirmButtonColor: '#F37021' });
                 else {
-                    Swal.fire({ icon: 'success', title: 'Repuesto', text: 'El stock fue descontado y enviado.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+                    Swal.fire({ icon: 'success', title: 'Operación Exitosa', text: 'Inventario actualizado.', timer: 1500, showConfirmButton: false });
                     cargarTablas();
                 }
-            } catch (e) {
-                Swal.fire({ icon: 'success', title: 'Simulación', text: 'Reposición enviada correctamente.', background: '#ffffff', color: '#333333', confirmButtonColor: '#007934' });
+            } catch (e) {}
+        }
+
+        async function recibirStock(id) {
+            Swal.fire({ title: 'Recibiendo...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch('api_confirmar_recepcion.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
+                const data = await res.json();
+                if (!data.error) {
+                    Swal.fire({ icon: 'success', title: 'Mercancía en Piso', text: 'La mercancía se sumó al inventario local.', confirmButtonColor: '#007934' });
+                    cargarTablas();
+                } else { Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, confirmButtonColor: '#F37021' }); }
+            } catch (e) {}
+        }
+
+        async function pagarDeudaManual(id) {
+            const conf = await Swal.fire({ title: '¿Reponer con stock en piso?', text: 'Se descontará de tu inventario para enviarlo a la tienda origen.', icon: 'question', showCancelButton: true, confirmButtonText: 'Sí, enviar reposición', confirmButtonColor: '#F37021' });
+            if (conf.isConfirmed) {
+                Swal.fire({ title: 'Procesando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
+                try {
+                    const res = await fetch('api_pagar_deuda_manual.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
+                    const data = await res.json();
+                    if (data.error) Swal.fire({ icon: 'error', title: 'Aviso', text: data.mensaje, confirmButtonColor: '#F37021' });
+                    else {
+                        Swal.fire({ icon: 'success', title: 'Repuesto', text: 'El stock fue descontado y enviado en tránsito.', confirmButtonColor: '#007934' });
+                        cargarTablas();
+                    }
+                } catch (e) {}
             }
         }
+
+        async function recibirDevolucion(id) {
+            Swal.fire({ title: 'Recuperando...', background: '#ffffff', color: '#333333', didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch('api_recibir_devolucion.php', { method: 'POST', body: JSON.stringify({ id_prestamo: id }) });
+                const data = await res.json();
+                if (!data.error) {
+                    Swal.fire({ icon: 'success', title: 'Reposición Exitosa', text: 'Stock regresó a tu piso.', confirmButtonColor: '#007934' });
+                    cargarTablas();
+                } else { Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, confirmButtonColor: '#F37021' }); }
+        } catch (e) {}
     }
 
     cargarTablas();
